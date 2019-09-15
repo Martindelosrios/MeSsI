@@ -489,6 +489,71 @@ get_galaxies_features(dat, ClustersData){
 }
 
 #}}}
+# get_clusters_classification
+#{{{
+#' get_clusters_classification
+#' @description This function classify galaxies clusters.
+#' @param ClustersData Data frame with the features of all the galaxy clusters.
+#' @param model Machine Learning model that predicts the dynamical status of a galaxy cluster. Can be the output of Train_cluster_model.
+#' @return Vector with the probabilities of being a merging cluster.
+#' @export
+#' @examples
+#' get_clusters_classification(ClustersData, model)
+
+get_clusters_classification <- function(ClustersData, model){
+
+  lim <- 0.3 # Treshol in the probability of being a merging cluster
+
+  model_predictions <- predict(model, newdata = ClustersData, type = 'prob')
+  return(model_predictions)
+}
+#}}}
+# get_substructures
+#{{{
+#' get_substructures
+#' @description This function look for the substructures inside merging clusters.
+#' @param ClustersData Data frame with the features of all the galaxy clusters.
+#' @param GalaxiesData Data frame with the features of all the galaxies of the clusters.
+#' @param model Machine Learning model that predicts the probability of a galaxy of being part of a substructure inside a merging cluster. Can be the output of Train_galaxy_model.
+#' @return Data frame with the properties of the substructures.
+#' @export
+#' @examples
+#' get_substructures(ClustersData, GalaxiesData, model)
+
+get_substructures <- function(ClustersData, GalaxiesData, model){
+
+  classification  <- predict(model, newdata = GalaxiesData, type = 'prob')
+  GalaxiesData    <- cbind(GalaxiesData, classification)
+  MergingClusters <- subset(ClustersData$ngroup, ClustersData$Classification > ProbLimit)
+
+  if(length(MergingClusters) > 0){
+    for(i in 1:length(MergingClusters)){
+      group <- subset(GalaxiesData, GalaxiesData$ngroup == MergingClusters[i])
+      if(length(group$ra) > 10){
+        ra    <- group$ra
+        dec   <- group$dec
+        vel   <- group$z*300000
+        mag   <- group$mag
+        color <- group$color
+        delta <- group$delta
+        peso  <- group$classification
+        
+        delmin        <- 0
+        grupo.id      <- paste(folder,'/merging_clusters/',toString(group$ngroup[1]),sep='')
+        substructures <- mixt.real(ra, dec, vel, mag, color, delta, peso, delmin, grupo.id)
+       
+        if(exists('AllSubstructures') == FALSE){
+          AllSubstructures <- substructures
+        } else {
+          AllSubstructures <- rbind(AllSubstructures, substructures)
+        }
+      }
+    }
+  }
+  if(exists('AllSubstructures') == FALSE){AllSubstructures <- -99}
+  return(Allsubstructures)
+}
+#}}}
 
 
 
@@ -507,6 +572,7 @@ messi <- function(dat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE,
 
   # Configuration and storage folders
 #{{{
+  ProbLimit <- 0.3 # Threshol in the probability of being a merging cluster.
   if(file.exists(folder)==FALSE){
     system(paste('mkdir',folder,sep=' '))
   }
@@ -532,7 +598,9 @@ messi <- function(dat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE,
   }
   if(rank == TRUE){
     print('Starting the classification of the galaxy clusters')
-    ClustersClassification <- get_clusters_classification(ClustersData)
+    Classification <- get_clusters_classification(ClustersData, model)
+    ClustersData   <- cbind(ClustersData, Classification)
+    Substructures  <- get_substructures(ClustersData, GalaxiesData, model)
   }
   if(est == TRUE){
     estabilidad_cum(folder = folder, n_it = 10, par = FALSE)
@@ -542,6 +610,12 @@ messi <- function(dat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE,
   t  <- (t2[3]-t1[3])
   print(paste('The program delay',toString(t/60),'minutes',sep=' '))
 }
+#}}}
+# Train_cluster_model
+#{{{
+#}}}
+# Train_galaxy_model
+#{{{
 #}}}
 
     # RANKING-RELAXED
@@ -617,233 +691,4 @@ messi <- function(dat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE,
   }
   write.table(dat_cum,file=name.groups,row.names=FALSE)
   #}}}
-    # RANKING
-  #{{{
-  nrank=nrank
-  
-  lim=0.3
-  lim.gal=0.4
-  #lim=0.2 #Version2
-  #lim.gal=0.3 #Version2
-  
-  trainset<-read.table(file=name_trainset_cum,header=TRUE)
-  trainset_gal<-read.table(file=name_trainset_gal,header=TRUE)
-  
-  
-  dat_gals<-read.table(file=name.gal,header=TRUE)
-  if(length(dat_gals$rf.pred.gal) > 0){ #Si ya existe la medicion aca la elimino para luego reemplazarla
-    dat_gals <- subset(dat_gals, select = -c(rf.pred.gal))
-  }
-  dat_cum<-read.table(file=name.groups,header=TRUE)
-  if(length(dat_cum$rf.pred.mer) > 0){ #Si ya existe la medicion aca la elimino para luego reemplazarla
-    dat_cum <- subset(dat_cum, select = -c(rf.pred.mer))
-  }
-  
-  cont.results=0
-  rf.pred.aux<-1:length(dat_cum$ngroup)
-  rf.pred.aux[]=0
-  
-  pb <- txtProgressBar(title = "progress bar", min = 0,max = nrank, width = 82)
-  for(jj in 1:nrank){
-  setTxtProgressBar(pb, jj, label=paste( round(jj/nrank*100, 0),"% done"))
-    
-    rf.out<-suppressWarnings(randomForest(id_mer~delta*ngal*pval*ind*p_sw*color*p_lillie,data=trainset,importance=TRUE))
-    rf.pred.mer<-predict(rf.out,newdata=dat_cum)
-    rf.pred.aux<-rf.pred.aux+rf.pred.mer
-    
-    if(length(dat_cum$rf.pred.mer) > 0){
-      dat_cum$rf.pred.mer=rf.pred.mer
-      dat<-dat_cum
-    } else {
-      dat<-data.frame(dat_cum,rf.pred.mer)
-    }
-    dat<-subset(dat,dat$rf.pred.mer>lim)
-    
-    
-    rf.out.gal<-suppressWarnings(randomForest(id~deltas_gal*del_cum*g_r*sw_gal*col_cum,data=trainset_gal,importance=TRUE))
-    rf.pred.gal<-predict(rf.out.gal,newdata=dat_gals)
-    
-    if(length(dat_gals$rf.pred.gal) > 0){
-      dat_gals$rf.pred.gal=rf.pred.gal
-      dat_gal<-dat_gals
-    } else {
-      dat_gal<-data.frame(dat_gals,rf.pred.gal)
-    }
-    dat_gal<-subset(dat_gal,dat_gal$rf.pred.gal>lim.gal)
-    
-    
-    ncum=length(dat$delta)
-    
-    
-    if(ncum > 0){ 
-      aux<-1:(ncum*22)
-      aux[1:(ncum*22)]=-99
-      mat<-matrix(aux,ncol=22,nrow=ncum)
-      for(i in 1:ncum){
-        group<-subset(dat_gal,dat_gal$ngroup==dat$ngroup[i])
-        if(length(group$ra)>10){
-       
-        ra=group$ra
-        dec=group$dec
-        vel=group$redshift*300000
-        mag=group$mag_r
-        color=group$g_r
-        delta=group$deltas_gal
-        peso=group$rf.pred.gal 
-        
-        delmin=0
-        grupo.id<-paste(folder,'/merging_clusters/',toString(group$ngroup[1]),sep='')
-        mixt.real(ra,dec,vel,mag,color,delta,peso,delmin,grupo.id)->v
-        mat[i,1]=dat$ngroup[i]
-        mat[i,2:22]=v
-        }
-      }    
-      mat<-data.frame(mat)
-      vec<-c('ngroup','l1','l2','rvir1','rvir2','dvel1','dvel2','mas1','mas2','par1','par2','tot','sigma1_ra','sigma1_dec','sigma2_ra','sigma2_dec','racen1','racen2','deccen1','deccen2','velcen1','velcen2')
-      colnames(mat)<-vec
-      mat<-subset(mat,mat$mas1>0)
-      #mat<-subset(mat,mat$par1>0.22)
-      #mat<-subset(mat,mat$par1>0.15)
-     
-      cont.results=cont.results+1
-      if(cont.results==1){
-        results=mat$ngroup
-        results_mat=mat
-      } else {
-        results<-c(results,mat$ngroup)
-        results_mat<-rbind(results_mat,mat)
-      }
-    } 
-  }
-  close(pb)
-  
-  
-  if(cont.results > 0){
-    ntodo=length(results)
-    name<-1:2
-    largo<-1:2
-    c=0
-    for(i in 1:ntodo){
-       if(length(results)>0){
-          s1<-subset(results,results == results[1])
-          c=c+1
-          name[c]=s1[1]
-          largo[c]=length(s1)
-          results<-subset(results,results != results[1])
-       }
-    }
-    
-    largo=largo/nrank
-    ngroup<-1:length(largo)
-    l1<-1:length(largo)
-    l2<-1:length(largo)
-    l1_err<-1:length(largo)
-    l2_err<-1:length(largo)
-    rvir1<-1:length(largo)
-    rvir2<-1:length(largo)
-    rvir1_err<-1:length(largo)
-    rvir2_err<-1:length(largo)
-    dvel1<-1:length(largo)
-    dvel2<-1:length(largo)
-    dvel1_err<-1:length(largo)
-    dvel2_err<-1:length(largo)
-    m1<-1:length(largo)
-    m2<-1:length(largo)
-    par1<-1:length(largo)
-    par2<-1:length(largo)
-    par1_err<-1:length(largo)
-    par2_err<-1:length(largo)
-    tot<-1:length(largo)
-    tot_err<-1:length(largo)
-    sigma1_ra<-1:length(largo) 
-    sigma2_ra<-1:length(largo) 
-    sigma1_ra_err<-1:length(largo) 
-    sigma2_ra_err<-1:length(largo) 
-    sigma1_dec<-1:length(largo) 
-    sigma2_dec<-1:length(largo) 
-    sigma1_dec_err<-1:length(largo) 
-    sigma2_dec_err<-1:length(largo) 
-    m1_err<-1:length(largo)
-    m2_err<-1:length(largo)
-    ra1<-1:length(largo)
-    ra2<-1:length(largo)
-    ra1_err<-1:length(largo)
-    ra2_err<-1:length(largo)
-    dec1<-1:length(largo)
-    dec2<-1:length(largo)
-    dec1_err<-1:length(largo)
-    dec2_err<-1:length(largo)
-    z1<-1:length(largo)
-    z2<-1:length(largo)
-    z1_err<-1:length(largo)
-    z2_err<-1:length(largo)
-    
-    for(i in 1:length(largo)){
-      if(length(results_mat$ngroup)>0){
-        mat_aux<-subset(results_mat,results_mat$ngroup==results_mat$ngroup[1])
-        results_mat<-subset(results_mat,results_mat$ngroup!=results_mat$ngroup[1])
-      
-        ngroup[i]=mat_aux$ngroup[1]
-        l1[i]=mean(mat_aux$l1) 
-        l1_err[i]=sd(mat_aux$l1) 
-        l2[i]=mean(mat_aux$l2) 
-        l2_err[i]=sd(mat_aux$l2) 
-        rvir1[i]=mean(mat_aux$rvir1) 
-        rvir1_err[i]=sd(mat_aux$rvir1) 
-        rvir2[i]=mean(mat_aux$rvir2) 
-        rvir2_err[i]=sd(mat_aux$rvir2) 
-        dvel1[i]=mean(mat_aux$dvel1) 
-        dvel1_err[i]=sd(mat_aux$dvel1) 
-        dvel2[i]=mean(mat_aux$dvel2) 
-        dvel2_err[i]=sd(mat_aux$dvel2) 
-        m1[i]=mean(mat_aux$mas1) 
-        m1_err[i]=sd(mat_aux$mas1)
-        m2[i]=mean(mat_aux$mas2) 
-        m2_err[i]=sd(mat_aux$mas2)
-        par1[i]=mean(mat_aux$par1) 
-        par1_err[i]=sd(mat_aux$par1)
-        par2[i]=mean(mat_aux$par2) 
-        par2_err[i]=sd(mat_aux$par2)
-        tot[i]=mean(mat_aux$tot)
-        sigma1_ra[i]=mean(mat_aux$sigma1_ra) 
-        sigma1_ra_err[i]=sd(mat_aux$sigma1_ra)
-        sigma2_ra[i]=mean(mat_aux$sigma2_ra) 
-        sigma2_ra_err[i]=sd(mat_aux$sigma2_ra)
-        sigma1_dec[i]=mean(mat_aux$sigma1_dec) 
-        sigma1_dec_err[i]=sd(mat_aux$sigma1_dec)
-        sigma2_dec[i]=mean(mat_aux$sigma2_dec) 
-        sigma2_dec_err[i]=sd(mat_aux$sigma2_dec)
-        tot_err[i]=sd(mat_aux$tot)
-        ra1[i]=mean(mat_aux$racen1)*180/pi
-        ra1_err[i]=sd(mat_aux$racen1)*180/pi
-        ra2[i]=mean(mat_aux$racen2)*180/pi
-        ra2_err[i]=sd(mat_aux$racen2)*180/pi
-        dec1[i]=mean(mat_aux$deccen1)*180/pi
-        dec1_err[i]=sd(mat_aux$deccen1)*180/pi
-        dec2[i]=mean(mat_aux$deccen2)*180/pi
-        dec2_err[i]=sd(mat_aux$deccen2)*180/pi
-        z1[i]=mean(mat_aux$velcen1)/300000
-        z1_err[i]=sd(mat_aux$velcen1)/300000
-        z2[i]=mean(mat_aux$velcen2)/300000
-        z2_err[i]=sd(mat_aux$velcen2)/300000
-      }
-    }
-    
-    rank=largo
-    rankin<-data.frame(ngroup,rank,m1,m1_err,ra1,ra1_err,dec1,dec1_err,z1,z1_err,m2,m2_err,ra2,ra2_err,dec2,dec2_err,z2,z2_err,l1,l1_err,l2,l2_err,tot,tot_err,rvir1,rvir1_err,rvir2,rvir2_err,dvel1,dvel1_err,dvel2,dvel2_err,par1,par1_err,par2,par2_err,sigma1_ra,sigma1_ra_err,sigma2_ra,sigma2_ra_err,sigma1_dec,sigma1_dec_err,sigma2_dec,sigma2_dec_err)
-  
-    if(c==1){
-       rankin<-rankin[1,]
-    }
-  } else {
-    rankin<-'No hay cumulos en merger'
-  }
-  write.table(rankin,file=rank.name,row.names=FALSE)
-  rf.pred.mer<-rf.pred.aux/nrank
-  if(length(dat_cum$rf.pred.mer)>0){
-    dat_cum$rf.pred.mer=rf.pred.mer
-  } else {
-    dat_cum<-data.frame(dat_cum,rf.pred.mer)
-  }
-  write.table(dat_cum,file=name.groups,row.names=FALSE)
-  #}}}
+
