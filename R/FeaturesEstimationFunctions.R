@@ -217,7 +217,7 @@ DresslerShectmanPval2 <- function(cat){
   return(nran)
 }
 #}}}
-#DresslerShectmanIndividual 
+# DresslerShectmanIndividual 
 #{{{
 #' DresslerShectmanIndividual
 #' @description This function returns the delta value of the Dressler-Shectman statistic each galaxy of a galaxy cluster with ngal = 10.
@@ -240,7 +240,7 @@ DresslerShectmanIndividual <- function(group){
   return(delta)
 }
 #}}}
-#DresslerShectmanIndividual2 
+# DresslerShectmanIndividual2 
 #{{{
 #' DresslerShectmanIndividual2
 #' @description This function returns the delta value of the Dressler-Shectman statistic each galaxy of a galaxy cluster with ngal = floor(sqrt(ngal)).
@@ -539,8 +539,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model){
         peso  <- group$classification
         
         delmin        <- 0
-        grupo.id      <- paste(folder,'/merging_clusters/',toString(group$ngroup[1]),sep='')
-        substructures <- mixt.real(ra, dec, vel, mag, color, delta, peso, delmin, grupo.id)
+        substructures <- SubstructureIdentification(group)
        
         if(exists('AllSubstructures') == FALSE){
           AllSubstructures <- substructures
@@ -554,15 +553,17 @@ get_substructures <- function(ClustersData, GalaxiesData, model){
   return(Allsubstructures)
 }
 #}}}
-
-
-
-
-#messi
+# messi
 #{{{
-#dat debe ser un data frame con: id (numero),ra[° decimales],dec[° decimales],z (redshift),mag(aparente),color
+#' messi
+#' @description This function classify the clusters and estimates the merging substructures inside them.
+#' @param cat Data frame with the catalog of galaxies. It must have the angular positions in radians (ra, dec), the redshift (z), a flag indicating to which clusters it belong (id), the r apparent magnitude (mag) and a the g-r color (color).
+#' @return NULL.
+#' @export
+#' @examples
+#' messi(cat)
 
-messi <- function(dat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE, 
+messi <- function(cat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE, 
                   name.groups = 'estadisticos_grupos.dat',
                   name.gal = 'estadisticos_galaxias.dat',
                   rank.name = 'ranking.dat', relaxed.name = 'ranking_relaxed.dat',
@@ -602,15 +603,130 @@ messi <- function(dat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE,
     ClustersData   <- cbind(ClustersData, Classification)
     Substructures  <- get_substructures(ClustersData, GalaxiesData, model)
   }
-  if(est == TRUE){
-    estabilidad_cum(folder = folder, n_it = 10, par = FALSE)
-  }
+  #if(est == TRUE){
+  #  estabilidad_cum(folder = folder, n_it = 10, par = FALSE)
+  #}
 
   t2 <- proc.time()
   t  <- (t2[3]-t1[3])
   print(paste('The program delay',toString(t/60),'minutes',sep=' '))
 }
 #}}}
+# SubstructureIdentification
+#{{{
+#' SubstructureIdentification
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+
+SubstructureIdentification <- function(group){
+
+  group.id <- paste(folder,'/merging_clusters/',toString(group$ngroup[1]),sep='')
+  ngal     <- length(group$ra) 
+  mat      <- group
+
+  if(ngal > 10){
+    GroupSubs <- WeightedMclust(group) # Mclust pesado por peso
+    nSubs     <- max(GroupSubs$SubId)
+
+    if(nSubs > 1){
+      name <- paste(toString(group.id),'_galaxies.dat',sep='')
+      if(file.exists(name)==FALSE){
+       write.table(GroupSubs, file = name, row.names = FALSE, col.names = vec)
+      }
+
+      SubsNgal <- 1:nSubs
+      for(j in 1:nSubs){
+        SubsNgal[j] <- length(which(GroupSubs$SubId == j))
+      }
+      SubsNgal   <- sort(SubsNgal, decreasing = TRUE, index.return = TRUE)
+      FirstSubs  <- SubsNgal$x[1]
+      SecondSubs <- SubsNgal$x[2]
+      tot        <- (FirstSubs+SecondSubs)/ngal
+
+      if(SecondSubs > 4){
+        group1   <- subset(GroupSubs, GroupSubs$SubId == SubsNgal$ix[1])
+        gap_dvel <- VelocityDispersionGAP(group1$z*c)
+        ProjDist <- ProjectedDistance(data.frame(group1$ra, group1$dec, group1$z*c))
+        rvir1    <- (pi*(length(group1$ra)-1)*length(group1$ra))/(2*ProjDist)
+        dvel1    <- (sqrt(pi)*gap_dvel)/(length(group1$ra)*(length(group1$ra)-1))
+        mas1     <- (5*(dvel1**2)*rvir1)/(4.314465e-09)
+        racen1   <- mean(group1$ra)*pi/180
+        deccen1  <- mean(group1$dec)*pi/180
+        velcen1  <- mean(group1$z*c)
+
+        group2   <- subset(GroupSubs, GroupSubs$SubId == SubsNgal$ix[2])
+        gap_dvel <- VelocityDispersionGAP(group2$z*c)
+        ProjDist <- ProjectedDistance(data.frame(group2$ra, group2$dec, group2$z*c))
+        rvir2    <- (pi*(length(group2$ra)-1)*length(group2$ra))/(2*ProjDist)
+        dvel2    <- (sqrt(pi)*gap_dvel)/(length(group2$ra)*(length(group2$ra)-1))
+        mas2     <- (5*(dvel2**2)*rvir2)/(4.314465e-09)
+        racen2   <- mean(group2$ra)*pi/180
+        deccen2  <- mean(group2$dec)*pi/180
+        velcen2  <- mean(group2$z*c)
+      }
+
+      deccen    <- (deccen1+deccen2)/2
+      velcen    <- (velcen1+velcen2)/2
+      dist12    <- (sqrt((deccen1-deccen2)**2+(cos(deccen)*(racen1-racen2))**2))*(velcen/100)/(1*(1+(velcen/300000)))
+      par1      <- dist12/(rvir1+rvir2)
+      par2      <- abs(velcen1-velcen2)/(dvel1+dvel2)
+      }
+    }
+  }
+
+  v <- c(FirstSubs, SecondSubs, rvir1, rvir2, dvel1, dvel2, mas1, mas2,
+         par1, par2, tot, racen1, racen2, deccen1, deccen2, velcen1, velcen2)
+  return(v)
+}
+#}}}
+# WeightedMclust
+#{{{
+#' WeightedMclust
+#' @description This function performs a wegihted mixture of gaussians.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return data frame with the same info that the input data frame plus the substructure id.
+#' @export
+#' @examples
+#' WeightedMclust(cat)
+
+
+WeightedMclust <- functio(group){
+  for(k in 1:length(group$ra)){
+    dmin    <- min(group$peso)
+    dmax    <- max(group$peso)
+    npoints <- floor(((group$peso[k]-dmin)/(dmax-dmin))*49+1)
+    if(k == 1){
+      xnew  <- sample(group$ra[k], size = npoints, replace = TRUE)
+      ynew  <- sample(group$ra[k], size = npoints, replace = TRUE)
+      GlxId <- sample(k, size = npoints, replace = TRUE)
+    } else {
+      xnew  <- c(xnew, sample(group$ra[k], size = npoints, replace = TRUE))
+      ynew  <- c(ynew, sample(group$ra[k], size = npoints, replace = TRUE))
+      GlxId <- c(GlxId, sample(k, size = npoints, replace = TRUE))
+    }
+  }
+
+  auxGroup     <- data.frame(xnew, ynew) 
+  mclust_model <- Mclust(auxGroup, G = 1:n_G)
+
+  auxGroup <- data.frame(SubId = mclust_model$classification, GlxId)
+  auxGroup <- unique(auxGroup) # Remove all the replications
+  group    <- cbind(group, SubId = auxGroup$SubId)
+  return(group)
+}
+#}}}
+
+
+
+#----------------------------------------------------------------
+#-------------------------  TO DO  --------------------------
+#----------------------------------------------------------------
+
 # Train_cluster_model
 #{{{
 #}}}
@@ -692,3 +808,4 @@ messi <- function(dat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE,
   write.table(dat_cum,file=name.groups,row.names=FALSE)
   #}}}
 
+ 
