@@ -3,18 +3,17 @@
 #' DresslerShectmanTest
 #' @description This function returns the value of the Dressler-Shectman statistic for a galaxy cluster.
 #' @param 
-#' cat data frame with a the angular coordinates (ra and dec in radians) and the line of sight velocity (vel in km/s). The columns must be named 'ra', 'dec' and 'vel'
+#' cat data frame with a the angular coordinates (ra and dec in radians) and the redshift. The columns must be named 'ra', 'dec' and 'z'
 #' @return The Delta value of the Dressler-Shectman test corresponding to the galaxy cluster.
 #' @export
 #' @examples
 #' DresslerShectmanTest(cat)
 
 DresslerShectmanTest <- function(cat){
-  n <- length(cat[,1]) # Number of galaxies in the catalog
-  
+  n   <- length(cat[,1]) # Number of galaxies in the catalog
   x   <- cat$ra # x coordinate
   y   <- cat$dec # y coordinate
-  vel <- cat$vel # velocity
+  vel <- cat$z*cvel # velocity
 
   # Estimation of the peculiar velocity of ngal galaxies
   delta <- 1:n
@@ -35,18 +34,18 @@ DresslerShectmanTest <- function(cat){
 #' DresslerShectmanTest2
 #' @description This function returns the value of the Dressler-Shectman statistic for a galaxy cluster with ngal = sqrt(n).
 #' @param 
-#' cat data frame with a the angular coordinates (ra and dec in radians) and the line of sight velocity (vel in km/s). The columns must be named 'ra', 'dec' and 'vel'
+#' cat data frame with a the angular coordinates (ra and dec in radians) and the redshift. The columns must be named 'ra', 'dec' and 'z'.
 #' @return The Delta value of the Dressler-Shectman test corresponding to the galaxy cluster.
 #' @export
 #' @examples
 #' DresslerShectmanTest2(cat)
 
 DresslerShectmanTest2 <- function(cat){
-  n <- length(x) # Number of galaxies in the catalog
   
   x   <- cat$ra # x coordinate 
   y   <- cat$dec # y coordinate
-  vel <- cat$vel # velocity
+  vel <- cat$z*cvel # velocity
+  n   <- length(x) # Number of galaxies in the catalog
 
   # Estimation of the peculiar velocity of ngal galaxies
   delta <- 1:n
@@ -91,7 +90,7 @@ get_distance <- function(x, x0, y, y0, ngal){
 #' DresslerShectmanIter
 #' @description This function computes the Iterative Dressler-Shectman Test for a galaxy cluster and returns the number of iterations untill convergence.
 #' @param 
-#' cat data frame with a the angular coordinates (ra and dec in radians) and the line of sight velocity (vel in km/s). The columns must be named 'ra', 'dec' and 'vel'
+#' cat data frame with a the angular coordinates (ra and dec in radians) and the redshift. The columns must be named 'ra', 'dec' and 'z'.
 #' @return Number of iterations untill convergence.
 #' @export
 #' @examples
@@ -118,8 +117,8 @@ DresslerShectmanIter <- function(cat){
             y0       <- cat$dec[j]
             ra       <- cat$ra
             dec      <- cat$dec
-            vel      <- cat$vel
-            r        <- get_distance(ra, x0, dec, y0, ngal = floor(sqrt(ra)))
+            vel      <- cat$z*cvel
+            r        <- get_distance(ra, x0, dec, y0, ngal = floor(sqrt(n)))
             delta[j] <- DresslerShectmanGalaxy(vel, r)
           }
           mat   <- data.frame(ra, dec, vel, delta)
@@ -165,20 +164,20 @@ DresslerShectmanGalaxy <- function(vr, r){
 #' @description This function returns the p-value of the Dressler-Shectman statistic for a galaxy cluster with ngal = 10.
 #' @return The p-value of the Dressler-Shectman test corresponding to the galaxy cluster.
 #' @param 
-#' cat data frame with a the angular coordinates (ra and dec in radians) and the line of sight velocity (vel in km/s). The columns must be named 'ra', 'dec' and 'vel'
+#' cat data frame with a the angular coordinates (ra and dec in radians) and the redshift. The columns must be named 'ra', 'dec' and 'z'.
 #' @export
 #' @examples
 #' DresslerShectmanPval(cat)
 
 DresslerShectmanPval <- function(cat){
-  n     <- length(cat$vel)
+  n     <- length(cat$z*cvel)
   nran  <- 0
   nmont <- 100
   del   <- DresslerShectmanTest(cat)
   mat   <- cat # we will modify mat in each iteration
 
   for(i in 1:nmont){
-    mat$vel <- sample(mat$vel, size = n, replace = FALSE)
+    mat$z   <- sample(mat$z, size = n, replace = FALSE)
     del_mon <- DresslerShectmanTest(mat)
     if(del_mon > del){
       nran <- nran+1
@@ -194,20 +193,20 @@ DresslerShectmanPval <- function(cat){
 #' @description This function returns the p-value of the Dressler-Shectman statistic for a galaxy cluster with ngal = floor(sqrt(ngal)).
 #' @return The p-value of the Dressler-Shectman test corresponding to the galaxy cluster.
 #' @param 
-#' cat data frame with a the angular coordinates (ra and dec in radians) and the line of sight velocity (vel in km/s). The columns must be named 'ra', 'dec' and 'vel'
+#' cat data frame with a the angular coordinates (ra and dec in radians) and the redshift. The columns must be named 'ra', 'dec' and 'z'.
 #' @export
 #' @examples
 #' DresslerShectmanPval2(cat)
 
 DresslerShectmanPval2 <- function(cat){
-  n     <- length(cat$vel)
+  n     <- length(cat$z*cvel)
   nran  <- 0
   nmont <- 100
-  del   <- DresslerShectmanTest(cat)
+  del   <- DresslerShectmanTest2(cat)
   mat   <- cat # we will modify mat in each iteration
 
   for(i in 1:nmont){
-    mat$vel <- sample(mat$vel, size = n, replace = FALSE)
+    mat$z   <- sample(mat$z, size = n, replace = FALSE)
     del_mon <- DresslerShectmanTest2(mat)
     if(del_mon > del){
       nran <- nran+1
@@ -223,18 +222,19 @@ DresslerShectmanPval2 <- function(cat){
 #' @description This function returns the delta value of the Dressler-Shectman statistic each galaxy of a galaxy cluster with ngal = 10.
 #' @return The delta value of the Dressler-Shectman test corresponding to each galaxy of a galaxy cluster.
 #' @param 
-#' group data frame with a the angular coordinates (ra and dec in radians) and the line of sight velocity (vel in km/s). The columns must be named 'ra', 'dec' and 'vel'.
+#' group data frame with a the angular coordinates (ra and dec in radians) and the redshift. The columns must be named 'ra', 'dec' and 'z'.
 #' @export
 #' @examples
 #' DresslerShectmanIndividual(group)
 
 DresslerShectmanIndividual <- function(group){
   n <- length(group$ra)
+
   # Estimation of the delta statistic for each galaxy 
   delta <- 1:n
   for(j in 1:n){
-    r        <- get_distance(dat$ra, dat$ra[j], dat$dec, dat$dec[j], ngal  = 10)
-    delta[j] <- DresslerShectmanGalaxy(dat$vel, r)
+    r        <- get_distance(group$ra, group$ra[j], group$dec, group$dec[j], ngal  = 10)
+    delta[j] <- DresslerShectmanGalaxy(group$z*cvel, r)
   }
 
   return(delta)
@@ -246,7 +246,7 @@ DresslerShectmanIndividual <- function(group){
 #' @description This function returns the delta value of the Dressler-Shectman statistic each galaxy of a galaxy cluster with ngal = floor(sqrt(ngal)).
 #' @return The delta value of the Dressler-Shectman test corresponding to each galaxy of a galaxy cluster.
 #' @param 
-#' group data frame with a the angular coordinates (ra and dec in radians) and the line of sight velocity (vel in km/s). The columns must be named 'ra', 'dec' and 'vel'.
+#' group data frame with a the angular coordinates (ra and dec in radians) and the redshift. The columns must be named 'ra', 'dec' and 'z'.
 #' @export
 #' @examples
 #' DresslerShectmanIndividual2(group)
@@ -256,8 +256,8 @@ DresslerShectmanIndividual2 <- function(group){
   # Estimation of the delta statistic for each galaxy 
   delta <- 1:n
   for(j in 1:n){
-    r        <- get_distance(dat$ra, dat$ra[j], dat$dec, dat$dec[j], ngal  = floor(sqrt(n)))
-    delta[j] <- DresslerShectmanGalaxy(dat$vel, r)
+    r        <- get_distance(group$ra, group$ra[j], group$dec, group$dec[j], ngal  = floor(sqrt(n)))
+    delta[j] <- DresslerShectmanGalaxy(group$z*cvel, r)
   }
 
   return(delta)
@@ -278,10 +278,12 @@ VelocityDispersionGAP <- function(x){
   w <- 1:2
   g <- 1:2
   x <- sort(x, decreasing=FALSE)
+
   for(i in 1:n){
-  	w[i] <- i*(n+1-i)
-  	g[i] <- x[i+1]-x[i]
-  	}
+    w[i] <- i*(n+1-i)
+    g[i] <- x[i+1]-x[i]
+  }
+
   mul <- g*w
   mul <- sum(mul)
   return(mul)
@@ -293,15 +295,15 @@ VelocityDispersionGAP <- function(x){
 #' ProjectedDistance
 #' @description This function estimates the projected distances between galaxies needed for the estiamtion of the virial radius of the galaxy cluster.
 #' @param 
-#' cat data frame with a the angular coordinates (ra and dec in radians) and the line of sight velocity (vel in km/s). The columns must be named 'ra', 'dec' and 'vel'
+#' cat data frame with a the angular coordinates (ra and dec in radians) and the redshift. The columns must be named 'ra', 'dec' and 'z'.
 #' @return sum(1/d) where d is a vector with the projected distances.
 #' @export
 #' @examples
 #' ProjectedDistance(cat)
 
 ProjectedDistance <- function(cat){
-  id  <- sort(cat$vel, decreasing = FALSE, index.return=TRUE)$ix
-  vel <- cat$vel[id]
+  id  <- sort(cat$z*cvel, decreasing = FALSE, index.return=TRUE)$ix
+  vel <- cat$z[id]*cvel
   x   <- cat$ra[id] 
   y   <- cat$dec[id] 
   n   <- length(x)
@@ -315,14 +317,14 @@ ProjectedDistance <- function(cat){
           if(y[i] != y[j]){
             d    <- d+1
       	    r[d] <- (sqrt((y[i]-y[j])**2+(cos(y[i])*(x[i]-x[j]))**2))
-            r[d] <- r[d]*D.A(mean(vel/300000))
+            r[d] <- r[d]*D.A(mean(vel/cvel))
           }
         }
       }
     }
   }
   r <- 1/r
-  r <- subset(r,r<10000000)
+  r <- subset(r,r < 10000000)
   r <- sum(r)
   return(r)
 }
@@ -340,28 +342,29 @@ ProjectedDistance <- function(cat){
 
 ClusterFeatures <- function(group){
   ngal.lim <- 30
-  if(length(ra) > ngal.lim){ # Cut in the number of member galaxies
-    ngroup       <- dat$id[1]
-    ra           <- mean(dat$ra)
-    dec          <- mean(dat$dec)
-    z            <- mean(dat$z)
-    ngal         <- length(dat$ra)
-    color        <- mean(dat$color)
+  if(length(group$ra) > ngal.lim){ # Cut in the number of member galaxies
+    ngroup       <- group$id[1]
+    ra           <- mean(group$ra)
+    dec          <- mean(group$dec)
+    z            <- mean(group$z)
+    ngal         <- length(group$ra)
+    color        <- mean(group$color)
     sort_mags    <- sort(group$mag, decreasing = FALSE)
     mag_max      <- sort_mags[1]
     gap_mag      <- sort_mags[2] - sort_mags[1]
-    Delta        <- DresslerShectmanTest(dat$ra, dat$dec, dat$z*c)
-    Delta2       <- DresslerShectmanTest2(dat$ra, dat$dec, dat$z*c)
-    pval_ds      <- DresslerShectmanPval(dat$ra, dat$dec, dat$z*c)
-    ind          <- DresslerShectmanIter(dat$ra, dat$dec, dat$z*c)    
-    pval_sw      <- shapiro.test(dat$z*c)$p.val
-    pval_sf      <- sf.test(dat$z*c)$p.val
-    pval_ad      <- ad.test(dat$z*c)$p.val
-    pval_cvm     <- suppressWarnings(cvm.test(vel))$p.val
-    pval_lillie  <- lillie.test(dat$z*c)$p.val
-    pval_pearson <- pearson.test(dat$z*c)$p.val
+    Delta        <- DresslerShectmanTest(group)
+    Delta2       <- DresslerShectmanTest2(group)
+    pval_ds      <- DresslerShectmanPval(group)
+    ind          <- DresslerShectmanIter(group)    
+    pval_sw      <- shapiro.test(group$z*cvel)$p.val
+    pval_sf      <- sf.test(group$z*cvel)$p.val
+    pval_ad      <- ad.test(group$z*cvel)$p.val
+    pval_cvm     <- suppressWarnings(cvm.test(group$z*cvel))$p.val
+    pval_lillie  <- lillie.test(group$z*cvel)$p.val
+    pval_pearson <- pearson.test(group$z*cvel)$p.val
   }  
-  features <- data.frame(ngroup, ra, dec, z, ngal, color, , mag_max, gap_mag, Delta, Delta2, pval_ds, ind, pval_sw, pval_sf, pval_ad, pval_cvm, pval_lillie, pval_pearson)
+  features <- data.frame(ngroup, ra, dec, z, ngal, color, mag_max, gap_mag, Delta, Delta2, pval_ds, ind, pval_sw, pval_sf, pval_ad, pval_cvm, pval_lillie, pval_pearson)
+  return(features)
 }
   
 #}}}
@@ -378,13 +381,13 @@ ClusterFeatures <- function(group){
 
 get_cluster_features <- function(dat){
   for(i in 1:ntotal){
-    if(length(dat$ra)>0){
+    if(length(dat$ra) > 0){
       groupid  <- dat$id[1] # Id if the group that will be studied
-      group    <- subset(dat,dat$id==groupid) # Select the galaxies of the group
+      group    <- subset(dat,dat$id == groupid) # Select the galaxies of the group
       dat      <- subset(dat,dat$id != groupid) # Remove the galaxies of the group from the general catalog
-      features <- ClusterFeatures(group, ...) # Estimates the features
+      features <- ClusterFeatures(group) # Estimates the features
       if(exists('Allfeatures') == FALSE){Allfeatures <- features}
-      features <- rbind(Allfeatures, features)
+      Allfeatures <- rbind(Allfeatures, features)
     }
   }
   write.table(Allfeatures, file = name.groups, row.names = FALSE)
@@ -532,7 +535,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model){
       if(length(group$ra) > 10){
         ra    <- group$ra
         dec   <- group$dec
-        vel   <- group$z*300000
+        vel   <- group$z*cvel
         mag   <- group$mag
         color <- group$color
         delta <- group$delta
@@ -636,7 +639,7 @@ SubstructureIdentification <- function(group){
     if(nSubs > 1){
       name <- paste(toString(group.id),'_galaxies.dat',sep='')
       if(file.exists(name)==FALSE){
-       write.table(GroupSubs, file = name, row.names = FALSE, col.names = vec)
+        write.table(GroupSubs, file = name, row.names = FALSE, col.names = vec)
       }
 
       SubsNgal <- 1:nSubs
@@ -672,10 +675,9 @@ SubstructureIdentification <- function(group){
 
       deccen    <- (deccen1+deccen2)/2
       velcen    <- (velcen1+velcen2)/2
-      dist12    <- (sqrt((deccen1-deccen2)**2+(cos(deccen)*(racen1-racen2))**2))*(velcen/100)/(1*(1+(velcen/300000)))
+      dist12    <- (sqrt((deccen1-deccen2)**2+(cos(deccen)*(racen1-racen2))**2))*(velcen/100)/(1*(1+(velcen/cvel)))
       par1      <- dist12/(rvir1+rvir2)
       par2      <- abs(velcen1-velcen2)/(dvel1+dvel2)
-      }
     }
   }
 
@@ -695,7 +697,7 @@ SubstructureIdentification <- function(group){
 #' WeightedMclust(cat)
 
 
-WeightedMclust <- functio(group){
+WeightedMclust <- function(group){
   for(k in 1:length(group$ra)){
     dmin    <- min(group$peso)
     dmax    <- max(group$peso)

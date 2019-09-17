@@ -4,5 +4,5 @@
 
   # Some configuration
 
-  c <- 300000. # Speed of light
+  cvel <- 300000. # Speed of light
 }
