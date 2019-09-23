@@ -381,7 +381,7 @@ get_cluster_features <- function(dat){
   counter  <- 0
   ngal.lim <- 30
   for(i in 1:ntotal){
-  if(length(dat$ra) > 0){break}
+    if(length(dat$ra) == 0){break}
     groupid <- dat$id[1] # Id if the group that will be studied
     group   <- subset(dat,dat$id == groupid) # Select the galaxies of the group
     dat     <- subset(dat,dat$id != groupid) # Remove the galaxies of the group from the general catalog
@@ -534,26 +534,29 @@ get_clusters_classification <- function(ClustersData, model){
 
 get_substructures <- function(ClustersData, GalaxiesData, model){
 
-  classification  <- predict(model, newdata = GalaxiesData, type = 'prob')
-  GalaxiesData    <- cbind(GalaxiesData, classification)
-  MergingClusters <- subset(ClustersData$ngroup, ClustersData$Classification > ProbLimit)
+  classification       <- predict(GalaxiesModel, newdata = GalaxiesData, type = 'prob')
+  GalaxiesData$relProb <- classification[,1]
+  GalaxiesData$subProb <- classification[,2]
+  MergingClusters      <- subset(ClustersData$ngroup, ClustersData$merProb > ProbLimit)
 
+  counter <- 0
   if(length(MergingClusters) > 0){
     for(i in 1:length(MergingClusters)){
       group <- subset(GalaxiesData, GalaxiesData$ngroup == MergingClusters[i])
       if(length(group$ra) > 10){
+        counter <- counter+1
+
         ra    <- group$ra
         dec   <- group$dec
         vel   <- group$z*cvel
         mag   <- group$mag
         color <- group$color
         delta <- group$delta
-        peso  <- group$classification
         
         delmin        <- 0
         substructures <- SubstructureIdentification(group)
        
-        if(exists('AllSubstructures') == FALSE){
+        if(counter == 1){
           AllSubstructures <- substructures
         } else {
           AllSubstructures <- rbind(AllSubstructures, substructures)
@@ -562,7 +565,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model){
     }
   }
   if(exists('AllSubstructures') == FALSE){AllSubstructures <- -99}
-  return(Allsubstructures)
+  return(AllSubstructures)
 }
 #}}}
 # messi
@@ -611,9 +614,14 @@ messi <- function(cat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE,
   }
   if(rank == TRUE){
     print('Starting the classification of the galaxy clusters')
-    Classification <- get_clusters_classification(ClustersData, model)
-    ClustersData   <- cbind(ClustersData, Classification)
-    Substructures  <- get_substructures(ClustersData, GalaxiesData, model)
+    Classification <- get_clusters_classification(ClustersData, ClustersModel)
+    ClustersData$relProb <- Classification[,1]
+    ClustersData$merProb <- Classification[,2]
+
+    Substructures  <- get_substructures(ClustersData, GalaxiesData, Galaxiesmodel)
+    names <- c('FirstSubs', 'SecondSubs', 'rvir1', 'rvir2', 'dvel1', 'dvel2', 'mas1', 'mas2',
+         'par1', 'par2', 'tot', 'racen1', 'racen2', 'deccen1', 'deccen2', 'velcen1', 'velcen2')
+    write.table(Substructures, file = 'algo.dat', col.names = names, row.names = FALSE, quote = FALSE)
   }
   #if(est == TRUE){
   #  estabilidad_cum(folder = folder, n_it = 10, par = FALSE)
@@ -647,8 +655,8 @@ SubstructureIdentification <- function(group){
 
     if(nSubs > 1){
       name <- paste(toString(group.id),'_galaxies.dat',sep='')
-      if(file.exists(name)==FALSE){
-        write.table(GroupSubs, file = name, row.names = FALSE, col.names = vec)
+      if(file.exists(name) == FALSE){
+        write.table(GroupSubs, file = 'name', row.names = FALSE, quote = FALSE)
       }
 
       SubsNgal <- 1:nSubs
@@ -662,24 +670,24 @@ SubstructureIdentification <- function(group){
 
       if(SecondSubs > 4){
         group1   <- subset(GroupSubs, GroupSubs$SubId == SubsNgal$ix[1])
-        gap_dvel <- VelocityDispersionGAP(group1$z*c)
-        ProjDist <- ProjectedDistance(data.frame(group1$ra, group1$dec, group1$z*c))
+        gap_dvel <- VelocityDispersionGAP(group1$z*cvel)
+        ProjDist <- ProjectedDistance(data.frame(group1$ra, group1$dec, group1$z*cvel))
         rvir1    <- (pi*(length(group1$ra)-1)*length(group1$ra))/(2*ProjDist)
         dvel1    <- (sqrt(pi)*gap_dvel)/(length(group1$ra)*(length(group1$ra)-1))
         mas1     <- (5*(dvel1**2)*rvir1)/(4.314465e-09)
         racen1   <- mean(group1$ra)*pi/180
         deccen1  <- mean(group1$dec)*pi/180
-        velcen1  <- mean(group1$z*c)
+        velcen1  <- mean(group1$z*cvel)
 
         group2   <- subset(GroupSubs, GroupSubs$SubId == SubsNgal$ix[2])
-        gap_dvel <- VelocityDispersionGAP(group2$z*c)
-        ProjDist <- ProjectedDistance(data.frame(group2$ra, group2$dec, group2$z*c))
+        gap_dvel <- VelocityDispersionGAP(group2$z*cvel)
+        ProjDist <- ProjectedDistance(data.frame(group2$ra, group2$dec, group2$z*cvel))
         rvir2    <- (pi*(length(group2$ra)-1)*length(group2$ra))/(2*ProjDist)
         dvel2    <- (sqrt(pi)*gap_dvel)/(length(group2$ra)*(length(group2$ra)-1))
         mas2     <- (5*(dvel2**2)*rvir2)/(4.314465e-09)
         racen2   <- mean(group2$ra)*pi/180
         deccen2  <- mean(group2$dec)*pi/180
-        velcen2  <- mean(group2$z*c)
+        velcen2  <- mean(group2$z*cvel)
       }
 
       deccen    <- (deccen1+deccen2)/2
@@ -690,9 +698,9 @@ SubstructureIdentification <- function(group){
     }
   }
 
-  v <- c(FirstSubs, SecondSubs, rvir1, rvir2, dvel1, dvel2, mas1, mas2,
+  SubsProperties <- c(FirstSubs, SecondSubs, rvir1, rvir2, dvel1, dvel2, mas1, mas2,
          par1, par2, tot, racen1, racen2, deccen1, deccen2, velcen1, velcen2)
-  return(v)
+  return(as.data.frame(t(SubsProperties)))
 }
 #}}}
 # WeightedMclust
@@ -708,17 +716,17 @@ SubstructureIdentification <- function(group){
 
 WeightedMclust <- function(group){
   for(k in 1:length(group$ra)){
-    dmin    <- min(group$peso)
-    dmax    <- max(group$peso)
-    npoints <- floor(((group$peso[k]-dmin)/(dmax-dmin))*49+1)
+    dmin    <- min(group$subProb)
+    dmax    <- max(group$subProb)
+    npoints <- floor(((group$subProb[k]-dmin)/(dmax-dmin))*49+1)
     if(k == 1){
-      xnew  <- sample(group$ra[k], size = npoints, replace = TRUE)
-      ynew  <- sample(group$ra[k], size = npoints, replace = TRUE)
+      xnew  <- replicate(n = npoints, group$ra[k])
+      ynew  <- replicate(n = npoints, group$dec[k])
       GlxId <- sample(k, size = npoints, replace = TRUE)
     } else {
-      xnew  <- c(xnew, sample(group$ra[k], size = npoints, replace = TRUE))
-      ynew  <- c(ynew, sample(group$ra[k], size = npoints, replace = TRUE))
-      GlxId <- c(GlxId, sample(k, size = npoints, replace = TRUE))
+      xnew  <- c(xnew, replicate(n = npoints, group$ra[k]))
+      ynew  <- c(ynew, replicate(n = npoints, group$dec[k]))
+      GlxId <- c(GlxId, replicate(n = npoints, k))
     }
   }
 
@@ -747,76 +755,76 @@ WeightedMclust <- function(group){
 
     # RANKING-RELAXED
   #{{{
-  trainset<-read.table(file=name_trainset_cum,header=TRUE)
-  nrank=nrank
-  
-  dat_cum<-read.table(file=name.groups,header=TRUE)
-  if(length(dat_cum$rf.pred.rel) > 0){ #Si ya existe la medicion aca la elimino para luego reemplazarla
-    dat_cum <- subset(dat_cum, select = -c(rf.pred.rel))
-  }
-  lim=0.6
-  
-  # Lectura de datos de cumulos
-  #if(mean(dat_cum$z) > 0.15){
-  #  trainset_rel<-read.table('/media/martin/store1/trabajos/mock/guo/mock_cumulos_snap56.dat',header=TRUE)
-  #} else {
-  #  trainset_rel<-read.table('/media/martin/store1/trabajos/mock/guo/mock_cumulos_snap63.dat',header=TRUE)
-  #}
-  cont.rel=0
-  rf.pred.aux<-1:length(dat_cum$ngroup)
-  rf.pred.aux[]=0
-  
-  pb <- txtProgressBar(title = "progress bar", min = 0,max = nrank, width = 82)
-  for(jj in 1:nrank){
-  setTxtProgressBar(pb, jj, label=paste( round(jj/nrank*100, 0),"% done"))
-  
-    rf.out.rel<-suppressWarnings(randomForest(id_rel~delta*ngal*pval*ind*p_sw*color*p_lillie,data=trainset,importance=TRUE))
-    #rf.out.rel<-randomForest(id_rel~delta*ngal*pval*ind*p_sw*color*p_lillie*sph*sph.dens*gap.sph,data=trainset,importance=TRUE)
-    rf.pred.rel<-predict(rf.out.rel,newdata=dat_cum)
-    rf.pred.aux<-rf.pred.aux+rf.pred.rel
-  
-    if(length(dat_cum$rf.pred.rel) > 0){
-      dat_cum$rf.pred.rel=rf.pred.rel
-      dat<-dat_cum
-    } else {
-      dat<-data.frame(dat_cum,rf.pred.rel)
-    }
-    dat<-subset(dat,dat$rf.pred.rel>lim)
-   
-    if(length(dat$ngroup)>0){
-      cont.rel=cont.rel+1
-      if(cont.rel==1){
-        results=dat
-      } else {
-        results<-rbind(results,dat)
-      }
-    }
-  }
-  close(pb)
-  
-  if(cont.rel>0){
-    ntodo=length(dat_cum$ngroup)
-    rank<-1:2
-    for(i in 1:ntodo){
-      aux<-subset(results,results$ngroup == dat_cum$ngroup[i])
-      rank[i]=length(aux$ngroup)/nrank
-    }
-    rel_groups<-data.frame(dat_cum,rank)
-    if(length(dat_cum$ngroup)==1){
-      rel_groups<-rel_groups[1,]
-    }
-  } else {
-    rel_groups<-'No hay cumulos relajados'
-  }
-  
-  write.table(rel_groups,file=relaxed.name,row.names=FALSE)
-  rf.pred.rel<-rf.pred.aux/nrank
-  if(length(dat_cum$rf.pred.rel)>0){
-    dat_cum$rf.pred.rel=rf.pred.rel
-  } else {
-    dat_cum<-data.frame(dat_cum,rf.pred.rel)
-  }
-  write.table(dat_cum,file=name.groups,row.names=FALSE)
+##  trainset<-read.table(file=name_trainset_cum,header=TRUE)
+##  nrank=nrank
+##  
+##  dat_cum<-read.table(file=name.groups,header=TRUE)
+##  if(length(dat_cum$rf.pred.rel) > 0){ #Si ya existe la medicion aca la elimino para luego reemplazarla
+##    dat_cum <- subset(dat_cum, select = -c(rf.pred.rel))
+##  }
+##  lim=0.6
+##  
+##  # Lectura de datos de cumulos
+##  #if(mean(dat_cum$z) > 0.15){
+##  #  trainset_rel<-read.table('/media/martin/store1/trabajos/mock/guo/mock_cumulos_snap56.dat',header=TRUE)
+##  #} else {
+##  #  trainset_rel<-read.table('/media/martin/store1/trabajos/mock/guo/mock_cumulos_snap63.dat',header=TRUE)
+##  #}
+##  cont.rel=0
+##  rf.pred.aux<-1:length(dat_cum$ngroup)
+##  rf.pred.aux[]=0
+##  
+##  pb <- txtProgressBar(title = "progress bar", min = 0,max = nrank, width = 82)
+##  for(jj in 1:nrank){
+##  setTxtProgressBar(pb, jj, label=paste( round(jj/nrank*100, 0),"% done"))
+##  
+##    rf.out.rel<-suppressWarnings(randomForest(id_rel~delta*ngal*pval*ind*p_sw*color*p_lillie,data=trainset,importance=TRUE))
+##    #rf.out.rel<-randomForest(id_rel~delta*ngal*pval*ind*p_sw*color*p_lillie*sph*sph.dens*gap.sph,data=trainset,importance=TRUE)
+##    rf.pred.rel<-predict(rf.out.rel,newdata=dat_cum)
+##    rf.pred.aux<-rf.pred.aux+rf.pred.rel
+##  
+##    if(length(dat_cum$rf.pred.rel) > 0){
+##      dat_cum$rf.pred.rel=rf.pred.rel
+##      dat<-dat_cum
+##    } else {
+##      dat<-data.frame(dat_cum,rf.pred.rel)
+##    }
+##    dat<-subset(dat,dat$rf.pred.rel>lim)
+##   
+##    if(length(dat$ngroup)>0){
+##      cont.rel=cont.rel+1
+##      if(cont.rel==1){
+##        results=dat
+##      } else {
+##        results<-rbind(results,dat)
+##      }
+##    }
+##  }
+##  close(pb)
+##  
+##  if(cont.rel>0){
+##    ntodo=length(dat_cum$ngroup)
+##    rank<-1:2
+##    for(i in 1:ntodo){
+##      aux<-subset(results,results$ngroup == dat_cum$ngroup[i])
+##      rank[i]=length(aux$ngroup)/nrank
+##    }
+##    rel_groups<-data.frame(dat_cum,rank)
+##    if(length(dat_cum$ngroup)==1){
+##      rel_groups<-rel_groups[1,]
+##    }
+##  } else {
+##    rel_groups<-'No hay cumulos relajados'
+##  }
+##  
+##  write.table(rel_groups,file=relaxed.name,row.names=FALSE)
+##  rf.pred.rel<-rf.pred.aux/nrank
+##  if(length(dat_cum$rf.pred.rel)>0){
+##    dat_cum$rf.pred.rel=rf.pred.rel
+##  } else {
+##    dat_cum<-data.frame(dat_cum,rf.pred.rel)
+##  }
+##  write.table(dat_cum,file=name.groups,row.names=FALSE)
   #}}}
 
  

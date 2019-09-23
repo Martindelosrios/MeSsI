@@ -4,10 +4,10 @@
 \alias{DresslerShectmanTest2}
 \title{DresslerShectmanTest2}
 \usage{
-DresslerShectmanTest2(x, y, vel)
+DresslerShectmanTest2(cat)
 }
 \arguments{
-\item{cat}{data frame with a the angular coordinates (ra and dec in degrees) and the line of sight velocity (vel in km/s). The columns must be named 'ra', 'dec' and 'vel'}
+\item{cat}{data frame with a the angular coordinates (ra and dec in radians) and the redshift. The columns must be named 'ra', 'dec' and 'z'.}
 }
 \value{
 The Delta value of the Dressler-Shectman test corresponding to the galaxy cluster.
