@@ -293,7 +293,7 @@ VelocityDispersionGAP <- function(x){
 # ProjectedDistance
 #{{{
 #' ProjectedDistance
-#' @description This function estimates the projected distances between galaxies needed for the estiamtion of the virial radius of the galaxy cluster.
+#' @description This function estimates the projected distances between galaxies needed for the estimation of the virial radius of the galaxy cluster.
 #' @param 
 #' cat data frame with a the angular coordinates (ra and dec in radians) and the redshift. The columns must be named 'ra', 'dec' and 'z'.
 #' @return sum(1/d) where d is a vector with the projected distances.
@@ -341,28 +341,26 @@ ProjectedDistance <- function(cat){
 #' ClusterFeatures(group)
 
 ClusterFeatures <- function(group){
-  ngal.lim <- 30
-  if(length(group$ra) > ngal.lim){ # Cut in the number of member galaxies
-    ngroup       <- group$id[1]
-    ra           <- mean(group$ra)
-    dec          <- mean(group$dec)
-    z            <- mean(group$z)
-    ngal         <- length(group$ra)
-    color        <- mean(group$color)
-    sort_mags    <- sort(group$mag, decreasing = FALSE)
-    mag_max      <- sort_mags[1]
-    gap_mag      <- sort_mags[2] - sort_mags[1]
-    Delta        <- DresslerShectmanTest(group)
-    Delta2       <- DresslerShectmanTest2(group)
-    pval_ds      <- DresslerShectmanPval(group)
-    ind          <- DresslerShectmanIter(group)    
-    pval_sw      <- shapiro.test(group$z*cvel)$p.val
-    pval_sf      <- sf.test(group$z*cvel)$p.val
-    pval_ad      <- ad.test(group$z*cvel)$p.val
-    pval_cvm     <- suppressWarnings(cvm.test(group$z*cvel))$p.val
-    pval_lillie  <- lillie.test(group$z*cvel)$p.val
-    pval_pearson <- pearson.test(group$z*cvel)$p.val
-  }  
+  ngroup       <- group$id[1]
+  ra           <- mean(group$ra)
+  dec          <- mean(group$dec)
+  z            <- mean(group$z)
+  ngal         <- length(group$ra)
+  color        <- mean(group$color)
+  sort_mags    <- sort(group$mag, decreasing = FALSE)
+  mag_max      <- sort_mags[1]
+  gap_mag      <- sort_mags[2] - sort_mags[1]
+  Delta        <- DresslerShectmanTest(group)
+  Delta2       <- DresslerShectmanTest2(group)
+  pval_ds      <- DresslerShectmanPval(group)
+  ind          <- DresslerShectmanIter(group)    
+  pval_sw      <- shapiro.test(group$z*cvel)$p.val
+  pval_sf      <- sf.test(group$z*cvel)$p.val
+  pval_ad      <- ad.test(group$z*cvel)$p.val
+  pval_cvm     <- suppressWarnings(cvm.test(group$z*cvel))$p.val
+  pval_lillie  <- lillie.test(group$z*cvel)$p.val
+  pval_pearson <- pearson.test(group$z*cvel)$p.val
+
   features <- data.frame(ngroup, ra, dec, z, ngal, color, mag_max, gap_mag, Delta, Delta2, pval_ds, ind, pval_sw, pval_sf, pval_ad, pval_cvm, pval_lillie, pval_pearson)
   return(features)
 }
@@ -380,14 +378,21 @@ ClusterFeatures <- function(group){
 #' get_cluster_features(dat)
 
 get_cluster_features <- function(dat){
+  counter  <- 0
+  ngal.lim <- 30
   for(i in 1:ntotal){
-    if(length(dat$ra) > 0){
-      groupid  <- dat$id[1] # Id if the group that will be studied
-      group    <- subset(dat,dat$id == groupid) # Select the galaxies of the group
-      dat      <- subset(dat,dat$id != groupid) # Remove the galaxies of the group from the general catalog
+  if(length(dat$ra) > 0){break}
+    groupid <- dat$id[1] # Id if the group that will be studied
+    group   <- subset(dat,dat$id == groupid) # Select the galaxies of the group
+    dat     <- subset(dat,dat$id != groupid) # Remove the galaxies of the group from the general catalog
+    if(length(group$ra) > ngal.lim){ # Cut in the number of member galaxies
+      counter <- counter+1
       features <- ClusterFeatures(group) # Estimates the features
-      if(exists('Allfeatures') == FALSE){Allfeatures <- features}
-      Allfeatures <- rbind(Allfeatures, features)
+      if(counter == 1){
+        Allfeatures <- features
+      } else {
+        Allfeatures <- rbind(Allfeatures, features)
+      }
     }
   }
   write.table(Allfeatures, file = name.groups, row.names = FALSE)
@@ -410,10 +415,10 @@ GalaxiesFeatures <- function(group_gals, group_data){
 
   x   <- group_gals$ra
   y   <- group_gals$dec
-  vel <- group_gals$z*c
+  vel <- group_gals$z*cvel
   
-  delta  <- DresslerShectmanIndividual(x, y, vel)
-  delta2 <- DresslerShectmanIndividual2(x, y, vel)
+  delta  <- DresslerShectmanIndividual(group_gals)
+  delta2 <- DresslerShectmanIndividual2(group_gals)
   
   pval_sw      <- 1:ngals 
   pval_sf      <- 1:ngals
@@ -430,14 +435,14 @@ GalaxiesFeatures <- function(group_gals, group_data){
     pval_sf[j]      <- sf.test(vel_loc)$p.value
     pval_ad[j]      <- ad.test(vel_loc)$p.value
     pval_cvm[j]     <- cvm.test(vel_loc)$p.value
-    pval_lillie[j]  <- lillie.test(vel_loc)p.value
+    pval_lillie[j]  <- lillie.test(vel_loc)$p.value
     pval_pearson[j] <- pearson.test(vel_loc)$p.value
   }
   
   ngroup      <- group_data$ngroup
   ra          <- x
   dec         <- y
-  z           <- vel/c
+  z           <- vel/cvel
   mag         <- group_gals$mag
   color       <- group_gals$color
   sw_gal      <- pval_sw
@@ -478,17 +483,21 @@ GalaxiesFeatures <- function(group_gals, group_data){
 #' @examples
 #' get_galaxies_features(dat, ClustersData)
 
-get_galaxies_features(dat, ClustersData){
-  ncluster <- length(ClustersData$ngroup) # Total number of galaxy clusters
+get_galaxies_features <- function(dat, ClustersData){
+  nclusters <- length(ClustersData$ngroup) # Total number of galaxy clusters
 
   for(i in 1:nclusters){
     group_gals    <- subset(dat, dat$id == ClustersData$ngroup[i]) # Id of the cluster that will be studied in this iteration
     group_data    <- ClustersData[i,] # Data of the cluster that will be studied in this iteration
     features <- GalaxiesFeatures(group_gals, group_data) # Estimation of the galaxy features
-    if(exists('Allfeatures') == FALSE){Allfeatures <- features}
-    features <- rbind(Allfeatures, features)
+    if(i == 1){
+      AllGalaxyfeatures <- features
+    } else {
+      AllGalaxyfeatures <- rbind(AllGalaxyfeatures, features)
+    }
   }
-  write.table(Allfeatures, file = name.gal, row.names = FALSE, quote = FALSE)
+  write.table(AllGalaxyfeatures, file = name.gal, row.names = FALSE, quote = FALSE)
+  return(AllGalaxyfeatures)
 }
 
 #}}}
