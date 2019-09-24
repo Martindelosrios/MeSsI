@@ -377,7 +377,7 @@ ClusterFeatures <- function(group){
 #' @examples
 #' get_cluster_features(dat)
 
-get_cluster_features <- function(dat){
+get_cluster_features <- function(dat, ntotal, name.groups){
   counter  <- 0
   ngal.lim <- 30
   for(i in 1:ntotal){
@@ -483,7 +483,7 @@ GalaxiesFeatures <- function(group_gals, group_data){
 #' @examples
 #' get_galaxies_features(dat, ClustersData)
 
-get_galaxies_features <- function(dat, ClustersData){
+get_galaxies_features <- function(dat, ClustersData, name.gal){
   nclusters <- length(ClustersData$ngroup) # Total number of galaxy clusters
 
   for(i in 1:nclusters){
@@ -532,12 +532,12 @@ get_clusters_classification <- function(ClustersData, model){
 #' @examples
 #' get_substructures(ClustersData, GalaxiesData, model)
 
-get_substructures <- function(ClustersData, GalaxiesData, model){
+get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, folder){
 
   classification       <- predict(GalaxiesModel, newdata = GalaxiesData, type = 'prob')
   GalaxiesData$relProb <- classification[,1]
   GalaxiesData$subProb <- classification[,2]
-  MergingClusters      <- subset(ClustersData$ngroup, ClustersData$merProb > ProbLimit)
+  MergingClusters      <- subset(ClustersData$ngroup, ClustersData$merProb > probLimit)
 
   counter <- 0
   if(length(MergingClusters) > 0){
@@ -554,7 +554,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model){
         delta <- group$delta
         
         delmin        <- 0
-        substructures <- SubstructureIdentification(group)
+        substructures <- SubstructureIdentification(group, folder)
        
         if(counter == 1){
           AllSubstructures <- substructures
@@ -564,7 +564,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model){
       }
     }
   }
-  if(exists('AllSubstructures') == FALSE){AllSubstructures <- -99}
+  if(exists('AllSubstructures') == FALSE){AllSubstructures$group.id <- -99}
   return(AllSubstructures)
 }
 #}}}
@@ -578,54 +578,65 @@ get_substructures <- function(ClustersData, GalaxiesData, model){
 #' @examples
 #' messi(cat)
 
-messi <- function(cat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE, 
-                  name.groups = 'estadisticos_grupos.dat',
-                  name.gal = 'estadisticos_galaxias.dat',
-                  rank.name = 'ranking.dat', relaxed.name = 'ranking_relaxed.dat',
-                  folder = 'folder', nrank = 100, name_trainset_cum = 'trainset_cum.dat',
-                  name_trainset_gal = 'trainset_gal.dat', ntotal = 0, 
-                  ngal.lim = 30, est = TRUE, ...){
+messi <- function(cat, 
+                  clusters = TRUE,
+                  galaxies = TRUE,
+                  classification = TRUE, 
+                  clustersOutput = 'clustersOutput.dat',
+                  galaxiesOutput = 'galaxiesOutput.dat',
+                  classOutput    = 'ClassOutput.dat',
+                  folder    = 'folder', 
+                  ClustersModel = '../TrainingData/ClustersModel.R',
+                  GalaxiesModel = '../TrainingData/GalaxiesModel.R',
+                  #TrainsetClusters = 'trainset_cum.dat',
+                  #TrainsetGalaxies = 'trainset_gal.dat',
+                  ntotal = 0, 
+                  ngal.lim = 30,
+                  est = TRUE,
+                  probLimit = 0.3, ...){
 
   # Configuration and storage folders
 #{{{
-  ProbLimit <- 0.3 # Threshol in the probability of being a merging cluster.
-  if(file.exists(folder)==FALSE){
-    system(paste('mkdir',folder,sep=' '))
+  if(file.exists(folder) == FALSE){
+    system(paste('mkdir', folder, sep = ' '))
   }
-  mc <- paste(folder,'/merging_clusters',sep='') 
-  if(file.exists(mc)==FALSE){
-    system(paste('mkdir',mc,sep=' '))
+  mc <- paste(folder, '/merging_clusters', sep = '') 
+  if(file.exists(mc) == FALSE){
+    system(paste('mkdir', mc, sep = ' '))
   }
-  name.groups  <- paste(folder,'/',name.groups,sep='')
-  name.gal     <- paste(folder,'/',name.gal,sep='')
-  rank.name    <- paste(folder,'/',rank.name,sep='')
-  relaxed.name <- paste(folder,'/',relaxed.name,sep='')
+  name.groups  <- paste0(folder, '/', clustersOutput)
+  name.gal     <- paste0(folder, '/', galaxiesOutput)
+  classOutput  <- paste0(folder, '/', classOutput)
 #}}}  
   t1 <- proc.time()
 
-  if(cum == TRUE){
+  if(clusters == TRUE){
     print('Starting the estimation of the galaxy clusters features')
-    if(ntotal==0){ntotal <- length(dat$ra)}
-    ClustersData <- get_cluster_features(dat)
+    if(ntotal == 0){ntotal <- length(cat$ra)}
+    ClustersData <- get_cluster_features(cat, ntotal, name.groups)
   }
-  if(gal == TRUE){
+  if(galaxies == TRUE){
     print('Starting the estimation of the galaxy features')
-    GalaxiesData <- get_galaxies_features(dat, ClustersData)
+    GalaxiesData <- get_galaxies_features(cat, ClustersData, name.gal)
   }
-  if(rank == TRUE){
+  if(classification == TRUE){
     print('Starting the classification of the galaxy clusters')
-    Classification <- get_clusters_classification(ClustersData, ClustersModel)
+    load(ClustersModel)
+    Classification       <- get_clusters_classification(ClustersData, ClustersModel)
     ClustersData$relProb <- Classification[,1]
     ClustersData$merProb <- Classification[,2]
 
-    Substructures  <- get_substructures(ClustersData, GalaxiesData, Galaxiesmodel)
-    names <- c('FirstSubs', 'SecondSubs', 'rvir1', 'rvir2', 'dvel1', 'dvel2', 'mas1', 'mas2',
+    print('Starting the estimation of the substructures')
+    load(GalaxiesModel)
+    Substructures  <- get_substructures(ClustersData, GalaxiesData, GalaxiesModel, probLimit, folder)
+    if(Substructures$group.id[1] != -99){
+      names <- c('group.id' ,'FirstSubs', 'SecondSubs', 'rvir1', 'rvir2', 'dvel1', 'dvel2', 'mas1', 'mas2',
          'par1', 'par2', 'tot', 'racen1', 'racen2', 'deccen1', 'deccen2', 'velcen1', 'velcen2')
-    write.table(Substructures, file = 'algo.dat', col.names = names, row.names = FALSE, quote = FALSE)
+      write.table(Substructures, file = classOutput, col.names = names, row.names = FALSE, quote = FALSE)
+    } else {
+      print('There are no merging clusters')
+    }
   }
-  #if(est == TRUE){
-  #  estabilidad_cum(folder = folder, n_it = 10, par = FALSE)
-  #}
 
   t2 <- proc.time()
   t  <- (t2[3]-t1[3])
@@ -643,12 +654,14 @@ messi <- function(cat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE,
 #' SubstructureIdentification(group)
 
 
-SubstructureIdentification <- function(group){
+SubstructureIdentification <- function(group, folder){
 
   group.id <- paste(folder,'/merging_clusters/',toString(group$ngroup[1]),sep='')
   ngal     <- length(group$ra) 
   mat      <- group
 
+  FirstSubs = SecondSubs = rvir1 = rvir2 = dvel1 = dvel2 = mas1 = mas2 <- -99 # Initializate
+  par1 = par2 = tot = racen1 = racen2 = deccen1 = deccen2 = velcen1 = velcen2 <- -99
   if(ngal > 10){
     GroupSubs <- WeightedMclust(group) # Mclust pesado por peso
     nSubs     <- max(GroupSubs$SubId)
@@ -656,7 +669,7 @@ SubstructureIdentification <- function(group){
     if(nSubs > 1){
       name <- paste(toString(group.id),'_galaxies.dat',sep='')
       if(file.exists(name) == FALSE){
-        write.table(GroupSubs, file = 'name', row.names = FALSE, quote = FALSE)
+        write.table(GroupSubs, file = name, row.names = FALSE, quote = FALSE)
       }
 
       SubsNgal <- 1:nSubs
@@ -688,17 +701,17 @@ SubstructureIdentification <- function(group){
         racen2   <- mean(group2$ra)*pi/180
         deccen2  <- mean(group2$dec)*pi/180
         velcen2  <- mean(group2$z*cvel)
-      }
 
-      deccen    <- (deccen1+deccen2)/2
-      velcen    <- (velcen1+velcen2)/2
-      dist12    <- (sqrt((deccen1-deccen2)**2+(cos(deccen)*(racen1-racen2))**2))*(velcen/100)/(1*(1+(velcen/cvel)))
-      par1      <- dist12/(rvir1+rvir2)
-      par2      <- abs(velcen1-velcen2)/(dvel1+dvel2)
+        deccen    <- (deccen1+deccen2)/2
+        velcen    <- (velcen1+velcen2)/2
+        dist12    <- (sqrt((deccen1-deccen2)**2+(cos(deccen)*(racen1-racen2))**2))*(velcen/100)/(1*(1+(velcen/cvel)))
+        par1      <- dist12/(rvir1+rvir2)
+        par2      <- abs(velcen1-velcen2)/(dvel1+dvel2)
+      }
     }
   }
 
-  SubsProperties <- c(FirstSubs, SecondSubs, rvir1, rvir2, dvel1, dvel2, mas1, mas2,
+  SubsProperties <- c(group.id = group$ngroup[1], FirstSubs, SecondSubs, rvir1, rvir2, dvel1, dvel2, mas1, mas2,
          par1, par2, tot, racen1, racen2, deccen1, deccen2, velcen1, velcen2)
   return(as.data.frame(t(SubsProperties)))
 }
@@ -731,7 +744,7 @@ WeightedMclust <- function(group){
   }
 
   auxGroup     <- data.frame(xnew, ynew) 
-  mclust_model <- Mclust(auxGroup, G = 1:n_G)
+  mclust_model <- Mclust(auxGroup, G = 1:2)
 
   auxGroup <- data.frame(SubId = mclust_model$classification, GlxId)
   auxGroup <- unique(auxGroup) # Remove all the replications

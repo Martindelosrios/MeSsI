@@ -4,13 +4,13 @@
 \alias{messi}
 \title{messi}
 \usage{
-messi(cat, cum = TRUE, gal = TRUE, rank = TRUE, relaxed = TRUE,
-  name.groups = "estadisticos_grupos.dat",
-  name.gal = "estadisticos_galaxias.dat", rank.name = "ranking.dat",
-  relaxed.name = "ranking_relaxed.dat", folder = "folder",
-  nrank = 100, name_trainset_cum = "trainset_cum.dat",
-  name_trainset_gal = "trainset_gal.dat", ntotal = 0, ngal.lim = 30,
-  est = TRUE, ...)
+messi(cat, clusters = TRUE, galaxies = TRUE, classification = TRUE,
+  clustersOutput = "clustersOutput.dat",
+  galaxiesOutput = "galaxiesOutput.dat",
+  classOutput = "ClassOutput.dat", folder = "folder",
+  ClustersModel = "../TrainingData/ClustersModel.R",
+  GalaxiesModel = "../TrainingData/GalaxiesModel.R", ntotal = 0,
+  ngal.lim = 30, est = TRUE, probLimit = 0.3, ...)
 }
 \arguments{
 \item{cat}{Data frame with the catalog of galaxies. It must have the angular positions in radians (ra, dec), the redshift (z), a flag indicating to which clusters it belong (id), the r apparent magnitude (mag) and a the g-r color (color).}

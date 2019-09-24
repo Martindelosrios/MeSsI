@@ -4,7 +4,7 @@
 \alias{SubstructureIdentification}
 \title{SubstructureIdentification}
 \usage{
-SubstructureIdentification(group)
+SubstructureIdentification(group, folder)
 }
 \arguments{
 \item{group}{Data frame with the galaxies of the cluster.}

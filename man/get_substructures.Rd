@@ -4,7 +4,7 @@
 \alias{get_substructures}
 \title{get_substructures}
 \usage{
-get_substructures(ClustersData, GalaxiesData, model)
+get_substructures(ClustersData, GalaxiesData, model, probLimit, folder)
 }
 \arguments{
 \item{ClustersData}{Data frame with the features of all the galaxy clusters.}
