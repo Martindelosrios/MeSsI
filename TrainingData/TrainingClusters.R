@@ -1,7 +1,6 @@
 dat  <- read.table('ClustersTrainingset.dat', header = T) 
 test <- read.table('ClustersTestingset.dat', header = T) 
 
-
 dat        <- dat[,-c(1,2,3,4)]
 dat$id_mer <- as.factor(dat$id_mer)
 

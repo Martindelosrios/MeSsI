@@ -44,9 +44,7 @@ _____________________________¶_11¶¶¶111¶¶¶¶¶¶¶¶1__
   ')
   options(scipen = 999)
 
-  # Some configuration
-
-  cvel <- 300000. # Speed of light
+  cvel <- 300000.
 }
 
 

@@ -21,4 +21,4 @@ testset  <- testset[-(1:val),]
 
 write.table(trainset, file = 'ClustersTrainingset.dat', row.names = FALSE, quote = FALSE)
 write.table(testset, file = 'ClustersTestingset.dat', row.names = FALSE, quote = FALSE)
-write.table(valset, file = 'ClustersValidationgset.dat', row.names = FALSE, quote = FALSE)
+write.table(valset, file = 'ClustersValidationset.dat', row.names = FALSE, quote = FALSE)

@@ -13,7 +13,7 @@ DresslerShectmanTest <- function(cat){
   n   <- length(cat[,1]) # Number of galaxies in the catalog
   x   <- cat$ra # x coordinate
   y   <- cat$dec # y coordinate
-  vel <- cat$z*cvel # velocity
+  vel <- cat$z*300000. # velocity
 
   # Estimation of the peculiar velocity of ngal galaxies
   delta <- 1:n
@@ -44,7 +44,7 @@ DresslerShectmanTest2 <- function(cat){
   
   x   <- cat$ra # x coordinate 
   y   <- cat$dec # y coordinate
-  vel <- cat$z*cvel # velocity
+  vel <- cat$z*300000. # velocity
   n   <- length(x) # Number of galaxies in the catalog
 
   # Estimation of the peculiar velocity of ngal galaxies
@@ -117,7 +117,7 @@ DresslerShectmanIter <- function(cat){
             y0       <- cat$dec[j]
             ra       <- cat$ra
             dec      <- cat$dec
-            vel      <- cat$z*cvel
+            vel      <- cat$z*300000.
             r        <- get_distance(ra, x0, dec, y0, ngal = floor(sqrt(n)))
             delta[j] <- DresslerShectmanGalaxy(vel, r)
           }
@@ -170,7 +170,7 @@ DresslerShectmanGalaxy <- function(vr, r){
 #' DresslerShectmanPval(cat)
 
 DresslerShectmanPval <- function(cat){
-  n     <- length(cat$z*cvel)
+  n     <- length(cat$z*300000.)
   nran  <- 0
   nmont <- 100
   del   <- DresslerShectmanTest(cat)
@@ -199,7 +199,7 @@ DresslerShectmanPval <- function(cat){
 #' DresslerShectmanPval2(cat)
 
 DresslerShectmanPval2 <- function(cat){
-  n     <- length(cat$z*cvel)
+  n     <- length(cat$z*300000.)
   nran  <- 0
   nmont <- 100
   del   <- DresslerShectmanTest2(cat)
@@ -234,7 +234,7 @@ DresslerShectmanIndividual <- function(group){
   delta <- 1:n
   for(j in 1:n){
     r        <- get_distance(group$ra, group$ra[j], group$dec, group$dec[j], ngal  = 10)
-    delta[j] <- DresslerShectmanGalaxy(group$z*cvel, r)
+    delta[j] <- DresslerShectmanGalaxy(group$z*300000., r)
   }
 
   return(delta)
@@ -257,7 +257,7 @@ DresslerShectmanIndividual2 <- function(group){
   delta <- 1:n
   for(j in 1:n){
     r        <- get_distance(group$ra, group$ra[j], group$dec, group$dec[j], ngal  = floor(sqrt(n)))
-    delta[j] <- DresslerShectmanGalaxy(group$z*cvel, r)
+    delta[j] <- DresslerShectmanGalaxy(group$z*300000., r)
   }
 
   return(delta)
@@ -302,8 +302,8 @@ VelocityDispersionGAP <- function(x){
 #' ProjectedDistance(cat)
 
 ProjectedDistance <- function(cat){
-  id  <- sort(cat$z*cvel, decreasing = FALSE, index.return=TRUE)$ix
-  vel <- cat$z[id]*cvel
+  id  <- sort(cat$z*300000., decreasing = FALSE, index.return=TRUE)$ix
+  vel <- cat$z[id]*300000.
   x   <- cat$ra[id] 
   y   <- cat$dec[id] 
   n   <- length(x)
@@ -317,7 +317,7 @@ ProjectedDistance <- function(cat){
           if(y[i] != y[j]){
             d    <- d+1
       	    r[d] <- (sqrt((y[i]-y[j])**2+(cos(y[i])*(x[i]-x[j]))**2))
-            r[d] <- r[d]*D.A(mean(vel/cvel))
+            r[d] <- r[d]*D.A(mean(vel/300000.))
           }
         }
       }
@@ -354,12 +354,12 @@ ClusterFeatures <- function(group){
   Delta2       <- DresslerShectmanTest2(group)
   pval_ds      <- DresslerShectmanPval(group)
   ind          <- DresslerShectmanIter(group)    
-  pval_sw      <- shapiro.test(group$z*cvel)$p.val
-  pval_sf      <- sf.test(group$z*cvel)$p.val
-  pval_ad      <- ad.test(group$z*cvel)$p.val
-  pval_cvm     <- suppressWarnings(cvm.test(group$z*cvel))$p.val
-  pval_lillie  <- lillie.test(group$z*cvel)$p.val
-  pval_pearson <- pearson.test(group$z*cvel)$p.val
+  pval_sw      <- shapiro.test(group$z*300000.)$p.val
+  pval_sf      <- sf.test(group$z*300000.)$p.val
+  pval_ad      <- ad.test(group$z*300000.)$p.val
+  pval_cvm     <- suppressWarnings(cvm.test(group$z*300000.))$p.val
+  pval_lillie  <- lillie.test(group$z*300000.)$p.val
+  pval_pearson <- pearson.test(group$z*300000.)$p.val
 
   features <- data.frame(ngroup, ra, dec, z, ngal, color, mag_max, gap_mag, Delta, Delta2, pval_ds, ind, pval_sw, pval_sf, pval_ad, pval_cvm, pval_lillie, pval_pearson)
   return(features)
@@ -380,7 +380,11 @@ ClusterFeatures <- function(group){
 get_cluster_features <- function(dat, ntotal, name.groups){
   counter  <- 0
   ngal.lim <- 30
+
+  pb <- txtProgressBar(title = "progress bar", min = 0,max = ntotal, width = 82)
   for(i in 1:ntotal){
+    setTxtProgressBar(pb, i, label=paste( round(i/ntotal*100, 0),"% done"))
+
     if(length(dat$ra) == 0){break}
     groupid <- dat$id[1] # Id if the group that will be studied
     group   <- subset(dat,dat$id == groupid) # Select the galaxies of the group
@@ -415,7 +419,7 @@ GalaxiesFeatures <- function(group_gals, group_data){
 
   x   <- group_gals$ra
   y   <- group_gals$dec
-  vel <- group_gals$z*cvel
+  vel <- group_gals$z*300000.
   
   delta  <- DresslerShectmanIndividual(group_gals)
   delta2 <- DresslerShectmanIndividual2(group_gals)
@@ -442,7 +446,7 @@ GalaxiesFeatures <- function(group_gals, group_data){
   ngroup      <- group_data$ngroup
   ra          <- x
   dec         <- y
-  z           <- vel/cvel
+  z           <- vel/300000.
   mag         <- group_gals$mag
   color       <- group_gals$color
   sw_gal      <- pval_sw
@@ -486,7 +490,9 @@ GalaxiesFeatures <- function(group_gals, group_data){
 get_galaxies_features <- function(dat, ClustersData, name.gal){
   nclusters <- length(ClustersData$ngroup) # Total number of galaxy clusters
 
+  pb <- txtProgressBar(title = "progress bar", min = 0,max = ntotal, width = 82)
   for(i in 1:nclusters){
+    setTxtProgressBar(pb, i, label=paste( round(i/nclusters*100, 0),"% done"))
     group_gals    <- subset(dat, dat$id == ClustersData$ngroup[i]) # Id of the cluster that will be studied in this iteration
     group_data    <- ClustersData[i,] # Data of the cluster that will be studied in this iteration
     features <- GalaxiesFeatures(group_gals, group_data) # Estimation of the galaxy features
@@ -534,21 +540,25 @@ get_clusters_classification <- function(ClustersData, model){
 
 get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, folder){
 
-  classification       <- predict(GalaxiesModel, newdata = GalaxiesData, type = 'prob')
+  classification       <- predict(model, newdata = GalaxiesData, type = 'prob')
   GalaxiesData$relProb <- classification[,1]
   GalaxiesData$subProb <- classification[,2]
   MergingClusters      <- subset(ClustersData$ngroup, ClustersData$merProb > probLimit)
 
   counter <- 0
   if(length(MergingClusters) > 0){
+
+    pb <- txtProgressBar(title = "progress bar", min = 0, max = length(MergingClusters), width = 82)
     for(i in 1:length(MergingClusters)){
+      setTxtProgressBar(pb, i, label=paste( round(i/length(MergingClusters)*100, 0),"% done"))
+  
       group <- subset(GalaxiesData, GalaxiesData$ngroup == MergingClusters[i])
       if(length(group$ra) > 10){
         counter <- counter+1
 
         ra    <- group$ra
         dec   <- group$dec
-        vel   <- group$z*cvel
+        vel   <- group$z*300000.
         mag   <- group$mag
         color <- group$color
         delta <- group$delta
@@ -621,14 +631,14 @@ messi <- function(cat,
   }
   if(classification == TRUE){
     print('Starting the classification of the galaxy clusters')
-    load(ClustersModel)
-    Classification       <- get_clusters_classification(ClustersData, ClustersModel)
+    MLModel <- load(ClustersModel)
+    Classification       <- get_clusters_classification(ClustersData, get(MLModel))
     ClustersData$relProb <- Classification[,1]
     ClustersData$merProb <- Classification[,2]
 
     print('Starting the estimation of the substructures')
-    load(GalaxiesModel)
-    Substructures  <- get_substructures(ClustersData, GalaxiesData, GalaxiesModel, probLimit, folder)
+    MLModel <- load(GalaxiesModel)
+    Substructures <- get_substructures(ClustersData = ClustersData, GalaxiesData = GalaxiesData, model = get(MLModel), probLimit = probLimit, folder = folder)
     if(Substructures$group.id[1] != -99){
       names <- c('group.id' ,'FirstSubs', 'SecondSubs', 'rvir1', 'rvir2', 'dvel1', 'dvel2', 'mas1', 'mas2',
          'par1', 'par2', 'tot', 'racen1', 'racen2', 'deccen1', 'deccen2', 'velcen1', 'velcen2')
@@ -683,28 +693,28 @@ SubstructureIdentification <- function(group, folder){
 
       if(SecondSubs > 4){
         group1   <- subset(GroupSubs, GroupSubs$SubId == SubsNgal$ix[1])
-        gap_dvel <- VelocityDispersionGAP(group1$z*cvel)
-        ProjDist <- ProjectedDistance(data.frame(group1$ra, group1$dec, group1$z*cvel))
+        gap_dvel <- VelocityDispersionGAP(group1$z*300000.)
+        ProjDist <- ProjectedDistance(data.frame(group1$ra, group1$dec, group1$z*300000.))
         rvir1    <- (pi*(length(group1$ra)-1)*length(group1$ra))/(2*ProjDist)
         dvel1    <- (sqrt(pi)*gap_dvel)/(length(group1$ra)*(length(group1$ra)-1))
         mas1     <- (5*(dvel1**2)*rvir1)/(4.314465e-09)
         racen1   <- mean(group1$ra)*pi/180
         deccen1  <- mean(group1$dec)*pi/180
-        velcen1  <- mean(group1$z*cvel)
+        velcen1  <- mean(group1$z*300000.)
 
         group2   <- subset(GroupSubs, GroupSubs$SubId == SubsNgal$ix[2])
-        gap_dvel <- VelocityDispersionGAP(group2$z*cvel)
-        ProjDist <- ProjectedDistance(data.frame(group2$ra, group2$dec, group2$z*cvel))
+        gap_dvel <- VelocityDispersionGAP(group2$z*300000.)
+        ProjDist <- ProjectedDistance(data.frame(group2$ra, group2$dec, group2$z*300000.))
         rvir2    <- (pi*(length(group2$ra)-1)*length(group2$ra))/(2*ProjDist)
         dvel2    <- (sqrt(pi)*gap_dvel)/(length(group2$ra)*(length(group2$ra)-1))
         mas2     <- (5*(dvel2**2)*rvir2)/(4.314465e-09)
         racen2   <- mean(group2$ra)*pi/180
         deccen2  <- mean(group2$dec)*pi/180
-        velcen2  <- mean(group2$z*cvel)
+        velcen2  <- mean(group2$z*300000.)
 
         deccen    <- (deccen1+deccen2)/2
         velcen    <- (velcen1+velcen2)/2
-        dist12    <- (sqrt((deccen1-deccen2)**2+(cos(deccen)*(racen1-racen2))**2))*(velcen/100)/(1*(1+(velcen/cvel)))
+        dist12    <- (sqrt((deccen1-deccen2)**2+(cos(deccen)*(racen1-racen2))**2))*(velcen/100)/(1*(1+(velcen/300000.)))
         par1      <- dist12/(rvir1+rvir2)
         par2      <- abs(velcen1-velcen2)/(dvel1+dvel2)
       }

@@ -1,24 +1,44 @@
 # Reading the data
 
-galaxies <- read.table('GalaxiesDataset.dat', header = TRUE)
+galaxies      <- read.table('GalaxiesDataset.dat', header = TRUE)
+trainClusters <- read.table('ClustersTrainingset.dat', header = TRUE)
+testClusters  <- read.table('ClustersTestingset.dat', header = TRUE)
+valClusters   <- read.table('ClustersValidationset.dat', header = TRUE)
 
-# Some configuration parameters
+for(i in 1:length(valClusters$ngroup)){
+  Group <- subset(galaxies, galaxies$ngroup == valClusters$ngroup[i])
 
-ngal  <- length(galaxies$ngroup) # Number of clusters
-train <- as.integer(ngal*70/100)
-test  <- as.integer(ngal*20/100)
-val   <- as.integer(ngal*10/100)
+  if(length(Group$ngroup) == 0){print(valClusters$ngroup[i])}
+  if(i == 1){
+    valset <- Group
+  } else {
+    valset <- rbind(valset, Group)
+  }
+}
 
-# Let's split the dataset into training, testing and validation sets.
+for(i in 1:length(testClusters$ngroup)){
+  Group <- subset(galaxies, galaxies$ngroup == testClusters$ngroup[i])
 
-set.seed(288890) # For reproductability reasons
+  if(length(Group$ngroup) == 0){print(testClusters$ngroup[i])}
+  if(i == 1){
+    testset <- Group
+  } else {
+    testset <- rbind(testset, Group)
+  }
+}
 
-train_index <- sample(1:ngal, size = train)
-trainset <- galaxies[train_index,]
-testset  <- galaxies[-train_index,]
-valset   <- testset[1:val,]
-testset  <- testset[-(1:val),]
+for(i in 1:length(trainClusters$ngroup)){
+  Group <- subset(galaxies, galaxies$ngroup == trainClusters$ngroup[i])
+
+  if(length(Group$ngroup) == 0){print(trainClusters$ngroup[i])}
+  if(i == 1){
+    trainset <- Group
+  } else {
+    trainset <- rbind(trainset, Group)
+  }
+}
 
 write.table(trainset, file = 'GalaxiesTrainingset.dat', row.names = FALSE, quote = FALSE)
 write.table(testset, file = 'GalaxiesTestingset.dat', row.names = FALSE, quote = FALSE)
 write.table(valset, file = 'GalaxiesValidationgset.dat', row.names = FALSE, quote = FALSE)
+
