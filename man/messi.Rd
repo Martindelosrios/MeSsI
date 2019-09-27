@@ -8,9 +8,9 @@ messi(cat, clusters = TRUE, galaxies = TRUE, classification = TRUE,
   clustersOutput = "clustersOutput.dat",
   galaxiesOutput = "galaxiesOutput.dat",
   classOutput = "ClassOutput.dat", folder = "folder",
-  ClustersModel = "../TrainingData/ClustersModel.R",
-  GalaxiesModel = "../TrainingData/GalaxiesModel.R", ntotal = 0,
-  ngal.lim = 30, est = TRUE, probLimit = 0.3, ...)
+  ClustersModel = "defaultClustersModel",
+  GalaxiesModel = "defaultGalaxiesModel", ntotal = 0, ngal.lim = 30,
+  est = TRUE, probLimit = 0.3, ...)
 }
 \arguments{
 \item{cat}{Data frame with the catalog of galaxies. It must have the angular positions in radians (ra, dec), the redshift (z), a flag indicating to which clusters it belong (id), the r apparent magnitude (mag) and a the g-r color (color).}

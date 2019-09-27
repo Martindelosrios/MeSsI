@@ -596,8 +596,8 @@ messi <- function(cat,
                   galaxiesOutput = 'galaxiesOutput.dat',
                   classOutput    = 'ClassOutput.dat',
                   folder    = 'folder', 
-                  ClustersModel = '../TrainingData/ClustersModel.R',
-                  GalaxiesModel = '../TrainingData/GalaxiesModel.R',
+                  ClustersModel = 'defaultClustersModel',
+                  GalaxiesModel = 'defaultGalaxiesModel',
                   #TrainsetClusters = 'trainset_cum.dat',
                   #TrainsetGalaxies = 'trainset_gal.dat',
                   ntotal = 0, 
@@ -631,14 +631,14 @@ messi <- function(cat,
   }
   if(classification == TRUE){
     print('Starting the classification of the galaxy clusters')
-    MLModel <- load(ClustersModel)
-    Classification       <- get_clusters_classification(ClustersData, get(MLModel))
+    if(ClustersModel == 'defaultClustersModel'){MLModel <- data(ClustersModel)}
+    Classification       <- get_clusters_classification(ClustersData, MLModel)
     ClustersData$relProb <- Classification[,1]
     ClustersData$merProb <- Classification[,2]
 
     print('Starting the estimation of the substructures')
-    MLModel <- load(GalaxiesModel)
-    Substructures <- get_substructures(ClustersData = ClustersData, GalaxiesData = GalaxiesData, model = get(MLModel), probLimit = probLimit, folder = folder)
+    if(GalaxiessModel == 'defaultGalaxiessModel'){MLModel <- data(GalaxiesModel)}
+    Substructures <- get_substructures(ClustersData = ClustersData, GalaxiesData = GalaxiesData, model = MLModel, probLimit = probLimit, folder = folder)
     if(Substructures$group.id[1] != -99){
       names <- c('group.id' ,'FirstSubs', 'SecondSubs', 'rvir1', 'rvir2', 'dvel1', 'dvel2', 'mas1', 'mas2',
          'par1', 'par2', 'tot', 'racen1', 'racen2', 'deccen1', 'deccen2', 'velcen1', 'velcen2')
