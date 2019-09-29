@@ -381,9 +381,9 @@ get_cluster_features <- function(dat, ntotal, name.groups){
   counter  <- 0
   ngal.lim <- 30
 
-  pb <- txtProgressBar(title = "progress bar", min = 0,max = ntotal, width = 82)
+  pb <- progress_bar$new(total = ntotal)
   for(i in 1:ntotal){
-    setTxtProgressBar(pb, i, label=paste( round(i/ntotal*100, 0),"% done"))
+    pb$tick()
 
     if(length(dat$ra) == 0){break}
     groupid <- dat$id[1] # Id if the group that will be studied
@@ -490,9 +490,10 @@ GalaxiesFeatures <- function(group_gals, group_data){
 get_galaxies_features <- function(dat, ClustersData, name.gal){
   nclusters <- length(ClustersData$ngroup) # Total number of galaxy clusters
 
-  pb <- txtProgressBar(title = "progress bar", min = 0,max = ntotal, width = 82)
+  pb <- progress_bar$new(total = nclusters)
   for(i in 1:nclusters){
-    setTxtProgressBar(pb, i, label=paste( round(i/nclusters*100, 0),"% done"))
+    pb$tick()
+
     group_gals    <- subset(dat, dat$id == ClustersData$ngroup[i]) # Id of the cluster that will be studied in this iteration
     group_data    <- ClustersData[i,] # Data of the cluster that will be studied in this iteration
     features <- GalaxiesFeatures(group_gals, group_data) # Estimation of the galaxy features
@@ -548,9 +549,9 @@ get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, fold
   counter <- 0
   if(length(MergingClusters) > 0){
 
-    pb <- txtProgressBar(title = "progress bar", min = 0, max = length(MergingClusters), width = 82)
+    pb <- progress_bar$new(total = length(MergingClusters))
     for(i in 1:length(MergingClusters)){
-      setTxtProgressBar(pb, i, label=paste( round(i/length(MergingClusters)*100, 0),"% done"))
+      pb$tick()
   
       group <- subset(GalaxiesData, GalaxiesData$ngroup == MergingClusters[i])
       if(length(group$ra) > 10){
