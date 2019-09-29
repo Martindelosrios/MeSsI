@@ -8,8 +8,8 @@ messi(cat, clusters = TRUE, galaxies = TRUE, classification = TRUE,
   clustersOutput = "clustersOutput.dat",
   galaxiesOutput = "galaxiesOutput.dat",
   classOutput = "ClassOutput.dat", folder = "folder",
-  ClustersModel = "defaultClustersModel",
-  GalaxiesModel = "defaultGalaxiesModel", ntotal = 0, ngal.lim = 30,
+  ClustersML = "defaultClustersModel",
+  GalaxiesML = "defaultGalaxiesModel", ntotal = 0, ngal.lim = 30,
   est = TRUE, probLimit = 0.3, ...)
 }
 \arguments{
