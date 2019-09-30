@@ -621,15 +621,29 @@ messi <- function(cat,
 #}}}  
   t1 <- proc.time()
 
+# ---------------------------------------------------------------------------------------
+# --------------------------- Galaxy Cluster Features ------------------------------------
+# ---------------------------------------------------------------------------------------
+
   if(clusters == TRUE){
     print('Starting the estimation of the galaxy clusters features')
     if(ntotal == 0){ntotal <- length(cat$ra)}
     ClustersData <- get_cluster_features(cat, ntotal, name.groups)
   }
+
+# ---------------------------------------------------------------------------------------
+# ------------------------------- Galaxies Features ------------------------------------
+# ---------------------------------------------------------------------------------------
+
   if(galaxies == TRUE){
     print('Starting the estimation of the galaxy features')
     GalaxiesData <- get_galaxies_features(cat, ClustersData, name.gal)
   }
+
+# ---------------------------------------------------------------------------------------
+# --------------------------- Galaxy Cluster Classification ------------------------------
+# ---------------------------------------------------------------------------------------
+
   if(classification == TRUE){
     print('Starting the classification of the galaxy clusters')
     if(ClustersML == 'defaultClustersModel'){ 
@@ -639,16 +653,21 @@ messi <- function(cat,
     Classification       <- get_clusters_classification(ClustersData, ClustersModel)
     ClustersData$relProb <- Classification[,1]
     ClustersData$merProb <- Classification[,2]
+    write.table(ClusterData, file = name.groups, row.names = FALSE)
 
     print('Starting the estimation of the substructures')
     if(GalaxiesML == 'defaultGalaxiessModel'){
       print('Using default Model')
       data(GalaxiesModel)
     }
+
     Substructures <- get_substructures(ClustersData = ClustersData, GalaxiesData = GalaxiesData, model = GalaxiesModel, probLimit = probLimit, folder = folder)
+
     if(Substructures$group.id[1] != -99){
-      names <- c('group.id' ,'FirstSubs', 'SecondSubs', 'rvir1', 'rvir2', 'dvel1', 'dvel2', 'mas1', 'mas2',
-         'par1', 'par2', 'tot', 'racen1', 'racen2', 'deccen1', 'deccen2', 'velcen1', 'velcen2')
+      names <- c('group.id' ,'FirstSubs', 'SecondSubs', 'rvir1', 
+                 'rvir2', 'dvel1', 'dvel2', 'mas1', 'mas2',
+                 'par1', 'par2', 'tot', 'racen1', 'racen2', 'deccen1',
+                 'deccen2', 'velcen1', 'velcen2')
       write.table(Substructures, file = classOutput, col.names = names, row.names = FALSE, quote = FALSE)
     } else {
       print('There are no merging clusters')
