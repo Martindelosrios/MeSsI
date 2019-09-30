@@ -589,7 +589,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, fold
 #' @examples
 #' messi(cat)
 
-messi <- function(cat, 
+messi <- function(cat = -99, 
                   clusters = TRUE,
                   galaxies = TRUE,
                   classification = TRUE, 
@@ -661,7 +661,10 @@ messi <- function(cat,
       data(GalaxiesModel)
     }
 
-    Substructures <- get_substructures(ClustersData = ClustersData, GalaxiesData = GalaxiesData, model = GalaxiesModel, probLimit = probLimit, folder = folder)
+    Substructures <- get_substructures(ClustersData = ClustersData, 
+                                       GalaxiesData = GalaxiesData, 
+                                       model = GalaxiesModel,
+                                       probLimit = probLimit, folder = folder)
 
     if(Substructures$group.id[1] != -99){
       names <- c('group.id' ,'FirstSubs', 'SecondSubs', 'rvir1', 
