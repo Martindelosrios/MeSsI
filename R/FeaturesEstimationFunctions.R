@@ -653,7 +653,7 @@ messi <- function(cat,
     Classification       <- get_clusters_classification(ClustersData, ClustersModel)
     ClustersData$relProb <- Classification[,1]
     ClustersData$merProb <- Classification[,2]
-    write.table(ClusterData, file = name.groups, row.names = FALSE)
+    write.table(ClustersData, file = name.groups, row.names = FALSE)
 
     print('Starting the estimation of the substructures')
     if(GalaxiesML == 'defaultGalaxiessModel'){
