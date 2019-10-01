@@ -387,10 +387,10 @@ get_cluster_features <- function(dat, ntotal, name.groups){
 
     if(length(dat$ra) == 0){break}
     groupid <- dat$id[1] # Id if the group that will be studied
-    group   <- subset(dat,dat$id == groupid) # Select the galaxies of the group
-    dat     <- subset(dat,dat$id != groupid) # Remove the galaxies of the group from the general catalog
+    group   <- subset(dat, dat$id == groupid) # Select the galaxies of the group
+    dat     <- subset(dat, dat$id != groupid) # Remove the galaxies of the group from the general catalog
     if(length(group$ra) > ngal.lim){ # Cut in the number of member galaxies
-      counter <- counter+1
+      counter  <- counter+1
       features <- ClusterFeatures(group) # Estimates the features
       if(counter == 1){
         Allfeatures <- features
@@ -604,7 +604,7 @@ messi <- function(cat = -99,
                   ntotal = 0, 
                   ngal.lim = 30,
                   est = TRUE,
-                  probLimit = 0.3, ...){
+                  probLimit = 0.3){
 
   # Configuration and storage folders
 #{{{
