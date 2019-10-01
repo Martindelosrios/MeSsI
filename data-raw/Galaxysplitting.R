@@ -1,44 +1,47 @@
 # Reading the data
 
-galaxies      <- read.table('../data/GalaxiesDataset.RData', header = TRUE)
-trainClusters <- read.table('../data/ClustersTrainingset.RData', header = TRUE)
-testClusters  <- read.table('../data/ClustersTestingset.RData', header = TRUE)
-valClusters   <- read.table('../data/ClustersValidationset.RData', header = TRUE)
+load('FullGalaxiesCatalog.RData')
+load('GalaxiesDataset.RData')
+load('../data/ClustersTrainingset.RData')
+load('../data/ClustersTestingset.RData')
+load('../data/ClustersValidationset.RData')
 
-for(i in 1:length(valClusters$ngroup)){
-  Group <- subset(galaxies, galaxies$ngroup == valClusters$ngroup[i])
+GalaxiesDataset$class <- FullGalaxiesCatalog$class
 
-  if(length(Group$ngroup) == 0){print(valClusters$ngroup[i])}
+for(i in 1:length(ClustersValidationset$ngroup)){
+  Group <- subset(GalaxiesDataset, GalaxiesDataset$ngroup == ClustersValidationset$ngroup[i])
+
+  if(length(Group$ngroup) == 0){print(ClustersValidationset$ngroup[i])}
   if(i == 1){
-    valset <- Group
+    GalaxiesValidationset <- Group
   } else {
-    valset <- rbind(valset, Group)
+    GalaxiesValidationset <- rbind(GalaxiesValidationset, Group)
   }
 }
 
-for(i in 1:length(testClusters$ngroup)){
-  Group <- subset(galaxies, galaxies$ngroup == testClusters$ngroup[i])
+for(i in 1:length(ClustersTestingset$ngroup)){
+  Group <- subset(GalaxiesDataset, GalaxiesDataset$ngroup == ClustersTestingset$ngroup[i])
 
-  if(length(Group$ngroup) == 0){print(testClusters$ngroup[i])}
+  if(length(Group$ngroup) == 0){print(ClustersTestingset$ngroup[i])}
   if(i == 1){
-    testset <- Group
+    GalaxiesTestingset <- Group
   } else {
-    testset <- rbind(testset, Group)
+    GalaxiesTestingset <- rbind(GalaxiesTestingset, Group)
   }
 }
 
-for(i in 1:length(trainClusters$ngroup)){
-  Group <- subset(galaxies, galaxies$ngroup == trainClusters$ngroup[i])
+for(i in 1:length(ClustersTrainingset$ngroup)){
+  Group <- subset(GalaxiesDataset, GalaxiesDataset$ngroup == ClustersTrainingset$ngroup[i])
 
-  if(length(Group$ngroup) == 0){print(trainClusters$ngroup[i])}
+  if(length(Group$ngroup) == 0){print(ClustersTrainingset$ngroup[i])}
   if(i == 1){
-    trainset <- Group
+    GalaxiesTrainingset <- Group
   } else {
-    trainset <- rbind(trainset, Group)
+    GalaxiesTrainingset <- rbind(GalaxiesTrainingset, Group)
   }
 }
 
-write.table(trainset, file = '../data/GalaxiesTrainingset.RData', row.names = FALSE, quote = FALSE)
-write.table(testset, file = '../data/GalaxiesTestingset.RData', row.names = FALSE, quote = FALSE)
-write.table(valset, file = '../data/GalaxiesValidationgset.RData', row.names = FALSE, quote = FALSE)
+save(GalaxiesTrainingset, file = '../data/GalaxiesTrainingset.RData')
+save(GalaxiesTestingset, file = '../data/GalaxiesTestingset.RData')
+save(GalaxiesValidationset, file = '../data/GalaxiesValidationset.RData')
 

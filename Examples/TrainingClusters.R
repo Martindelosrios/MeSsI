@@ -1,7 +1,9 @@
-dat  <- read.table('../data/ClustersTrainingset.RData', header = T) 
-test <- read.table('../data/ClustersTestingset.RData', header = T) 
+library('MeSsI')
 
-dat        <- dat[,-c(1,2,3,4)]
+data('ClustersTrainingset') 
+data('ClustersTestingset') 
+
+dat        <- ClustersTrainingset[,-c(1, 2, 3)]
 dat$id_mer <- as.factor(dat$id_mer)
 
 ClustersModel <- train(id_mer~., 
@@ -9,11 +11,11 @@ ClustersModel <- train(id_mer~.,
                       method = 'rf', 
                       metric = 'Accuracy') 
 
-dat  <- read.table('../data/GalaxiesTrainingset.RData', header = T) 
-test <- read.table('../data/GalaxiesTestingset.RData', header = T) 
+data('GalaxiesTrainingset') 
+data('GalaxiesTestingset') 
 
 
-dat        <- dat[,-c(1,2,3,4)]
+dat    <- dat[,-c(1,2,3,4)]
 dat$id <- as.factor(dat$id)
 
 
