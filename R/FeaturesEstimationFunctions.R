@@ -791,6 +791,67 @@ WeightedMclust <- function(group){
   return(group)
 }
 #}}}
+# roc
+#{{{
+#' roc
+#' @description This function estimates some statistics for measuring the performance of the machine learning model.
+#' @param dat Data frame with the real class and the prediction of the probability.
+#' @param real.name String with the name of the variable that is the real class. Defatult is 'class'. 
+#' @param pred.name String with the name of the variable that is the predicted probability. Defaults is 'merProb'.
+#' @return data frame with the statistics. 
+#' @export
+#' @examples
+#' roc(cat)
+
+roc <- function(dat, real.name = 'class', pred.name = 'merProb'){
+  real_merger <- length(which(dat[real.name] == 1))
+  real_relax  <- length(which(dat[real.name] == 0))
+  treshold    <- seq(from = 0.0001, to = 1, length.out = 10)
+
+  fpr <- 1:length(treshold)
+  tpr <- 1:length(treshold)
+  tnr <- 1:length(treshold)
+  ppv <- 1:length(treshold)
+  acc <- 1:length(treshold)
+  f1  <- 1:length(treshold)
+  for(i in 1:length(treshold)){
+    mer <- subset(dat, dat[pred.name] >= treshold[i])
+    rel <- subset(dat, dat[pred.name] < treshold[i])
+
+    if(length(mer$ra) > 0){
+      pred_mer  <- length(mer[pred.name])
+      true_mer  <- length(which(mer[real.name] == 1)) 
+      false_mer <- length(which(mer[real.name] == 0)) 
+      ppv[i]    <- true_mer/pred_mer
+      f1[i]     <- 2*ppv[i]*tpr[i]/(ppv[i]+tpr[i])
+    } else {
+      pred_mer  <- 0 
+      true_mer  <- 0 
+      false_mer <- 0 
+      ppv[i]    <- -99
+      f1[i]     <- -99
+    }
+    if(length(rel$ra) > 0){
+      pred_rel  <- length(rel[pred.name])
+      true_rel  <- length(which(rel[real.name] == 0)) 
+      false_rel <- length(which(rel[real.name] == 1)) 
+    } else {
+      pred_rel  <- 0 
+      true_rel  <- 0 
+      false_rel <- 0 
+    } 
+    fpr[i] <- false_mer/real_relax
+    tpr[i] <- true_mer/real_merger
+    tnr[i] <- true_rel/real_relax
+    acc[i] <- (true_mer+true_rel)/(real_merger+real_relax)
+  }
+ 
+  return(data.frame(treshold, fpr, tpr, tnr, ppv, acc, f1))
+}
+
+
+#}}}
+
 
 
 
