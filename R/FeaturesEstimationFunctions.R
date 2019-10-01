@@ -656,7 +656,7 @@ messi <- function(cat = -99,
     write.table(ClustersData, file = name.groups, row.names = FALSE)
 
     print('Starting the estimation of the substructures')
-    if(GalaxiesML == 'defaultGalaxiessModel'){
+    if(GalaxiesML == 'defaultGalaxiesModel'){
       print('Using default Model')
       data(GalaxiesModel)
     }
