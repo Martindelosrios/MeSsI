@@ -4,8 +4,8 @@
 \alias{messi}
 \title{messi}
 \usage{
-messi(cat, clusters = TRUE, galaxies = TRUE, classification = TRUE,
-  clustersOutput = "clustersOutput.dat",
+messi(cat = -99, clusters = TRUE, galaxies = TRUE,
+  classification = TRUE, clustersOutput = "clustersOutput.dat",
   galaxiesOutput = "galaxiesOutput.dat",
   classOutput = "ClassOutput.dat", folder = "folder",
   ClustersML = "defaultClustersModel",
