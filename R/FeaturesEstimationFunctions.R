@@ -340,7 +340,7 @@ ProjectedDistance <- function(cat){
 #' @examples
 #' ClusterFeatures(group)
 
-ClusterFeatures <- function(group, features){
+ClusterFeatures <- function(group, featuresFunctions, featuresNames = NULL){
 
 # Clusters general properties
   id  <- group$id[1]
@@ -349,24 +349,20 @@ ClusterFeatures <- function(group, features){
   z   <- mean(group$z)
 
 # Features estimation
+  nfeat    <- length(featuresFunctions)
+  features <- 1:nfeat
+  for(i in 1:nfeat){
+    features[i] <- featuresFunctions[[i]](group)
+  }
 
-  ngal         <- length(group$ra)
-  color        <- mean(group$color)
-  sort_mags    <- sort(group$mag, decreasing = FALSE)
-  mag_max      <- sort_mags[1]
-  gap_mag      <- sort_mags[2] - sort_mags[1]
-  Delta        <- DresslerShectmanTest(group)
-  Delta2       <- DresslerShectmanTest2(group)
-  pval_ds      <- DresslerShectmanPval(group)
-  ind          <- DresslerShectmanIter(group)    
-  pval_sw      <- shapiro.test(group$z*300000.)$p.val
-  pval_sf      <- sf.test(group$z*300000.)$p.val
-  pval_ad      <- ad.test(group$z*300000.)$p.val
-  pval_cvm     <- suppressWarnings(cvm.test(group$z*300000.))$p.val
-  pval_lillie  <- lillie.test(group$z*300000.)$p.val
-  pval_pearson <- pearson.test(group$z*300000.)$p.val
-
-  features <- data.frame(ngroup, ra, dec, z, ngal, color, mag_max, gap_mag, Delta, Delta2, pval_ds, ind, pval_sw, pval_sf, pval_ad, pval_cvm, pval_lillie, pval_pearson)
+  features     <- as.data.frame(t(features))
+  features$id  <- id
+  features$ra  <- ra
+  features$dec <- dec
+  features$z   <- z
+  if(is.null(featuresNames) == FALSE){
+    colnames(features) <- c('id', 'ra', 'dec', 'z', featuresNames)
+  }
   return(features)
 }
   
@@ -383,6 +379,15 @@ ClusterFeatures <- function(group, features){
 #' get_cluster_features(dat)
 
 get_cluster_features <- function(dat, ntotal, name.groups){
+
+  featuresFunctions <- list(ngal, color, mag_max, gap_max, DresslerShectmanTest,
+                            DresslerShectmanTest2, DresslerShectmanPval,DresslerShectmanIter,
+                            shapiro.testGroup, sf.testGroup, ad.testGroup, cvm.testGroup,
+                            lillie.testGroup, pearson.testGroup)
+  featuresNames <- c('ngal', 'color', 'mag_max', 'gap_max', 'Delta', 'Delta2', 'pval_ds',
+                     'ind', 'pval_sw', 'pval_sf', 'pval_ad', 'pval_cvm', 'pval_lillie',
+                     'pval_pearson')
+
   counter  <- 0
   ngal.lim <- 30
 
@@ -396,7 +401,7 @@ get_cluster_features <- function(dat, ntotal, name.groups){
     dat     <- subset(dat, dat$id != groupid) # Remove the galaxies of the group from the general catalog
     if(length(group$ra) > ngal.lim){ # Cut in the number of member galaxies
       counter  <- counter+1
-      features <- ClusterFeatures(group) # Estimates the features
+      features <- ClusterFeatures(group, featuresFunctions, featuresNames) # Estimates the features
       if(counter == 1){
         Allfeatures <- features
       } else {
@@ -872,6 +877,17 @@ roc <- function(dat, real.name = 'class', pred.name = 'merProb'){
 #----------------------------------------------------------------
 #-------------------------  TO DO  --------------------------
 #----------------------------------------------------------------
+
+# ngal
+# color
+# mag_max
+# gap_max
+# shapiro.testGroup
+# sf.testGroup
+# ad.testGroup
+# cvm.testGroup
+# lillie.testGroup
+# pearson.testGroup
 
 # Train_cluster_model
 #{{{
