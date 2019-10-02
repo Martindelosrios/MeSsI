@@ -2,6 +2,10 @@
 
 This package contain all the neccesary functions to perform the automatic analysis and classification of merging clusters using the method developed in (https://arxiv.org/abs/1509.02524) by Martín de los Rios, Mariano Domínguez, Dante Paz & Manuel Merchán.
 
+# Prerequisites
+
+This software make an extensive usage of the following packages that must be installed: ```randomForest```, ```nortest```, ```cosmoFns```, ```mclust```, ```e1071```, ```beepr```, ```caret```, ```progress```. 
+
 # Installation
 
 You can install the package directly from your R session using the ```install_github``` function from the ```devtools``` package.
@@ -10,8 +14,6 @@ You can install the package directly from your R session using the ```install_gi
 library('devtools')
 install_github('MartindelosRios/MeSsI')
 ```
-
-This software make an extensive usage of the following packages that must be installed: ```randomForest```, ```nortest```, ```cosmoFns```, ```mclust```, ```e1071```, ```beepr```, ```caret```, ```progress```. 
 
 # Example
 
@@ -39,3 +41,7 @@ str(cat)
 
 messi(cat, folder = 'test')
 ```
+
+# Authors
+
+Martín de los Rios.
