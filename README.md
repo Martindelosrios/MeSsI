@@ -34,4 +34,8 @@ cat <- GalaxiesDataset[, (1:6)]
 colnames(cat)[1] <- 'id'
 str(cat)
 
+# Then we just can apply the messi functions to this catalog, optionally given a name to the folder where all the 
+#  outputs file will be saved.
+
+messi(cat, folder = 'test')
 ```
