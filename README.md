@@ -4,7 +4,7 @@ This package contain all the neccesary functions to perform the automatic analys
 
 # Installation
 
-You can install the package directly from your R session using the '''install_github''' function from the '''devtools''' package.
+You can install the package directly from your R session using the ´´´install_github´´´ function from the '''devtools''' package.
 
 '''R
 library('devtools')
