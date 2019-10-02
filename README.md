@@ -10,3 +10,5 @@ You can install the package directly from your R session using the ```install_gi
 library('devtools')
 install_github('MartindelosRios/MeSsI')
 ```
+
+This software make an extensive usage of the following packages that must be installed: ```randomForest```, ```nortest```, ```cosmoFns```, ```mclust```, ```e1071```, ```beepr```, ```caret```, ```progress```. 
