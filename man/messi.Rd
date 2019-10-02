@@ -9,11 +9,32 @@ messi(cat = -99, clusters = TRUE, galaxies = TRUE,
   galaxiesOutput = "galaxiesOutput.dat",
   classOutput = "ClassOutput.dat", folder = "folder",
   ClustersML = "defaultClustersModel",
-  GalaxiesML = "defaultGalaxiesModel", ntotal = 0, ngal.lim = 30,
-  est = TRUE, probLimit = 0.3)
+  GalaxiesML = "defaultGalaxiesModel", ntotal = 0, probLimit = 0.3)
 }
 \arguments{
 \item{cat}{Data frame with the catalog of galaxies. It must have the angular positions in radians (ra, dec), the redshift (z), a flag indicating to which clusters it belong (id), the r apparent magnitude (mag) and a the g-r color (color).}
+
+\item{clusters}{Boolean indicating if the estimation of the galaxy clusters properties must be done. If FALSE a data frame name ClustersDataset must be load. Defatult TRUE.}
+
+\item{galaxies}{Boolean indicating if the estimation of the galaxies properties must be done. If FALSE a data frame name GalaxiesDataset must be load. Defatult TRUE.}
+
+\item{classification}{Boolean indicating if the classification of the galaxy clusters must be done. Default TRUE.}
+
+\item{clustersOutput}{String indicating the name of the output file that will contain the clusters properties.  Default clustersOutput.dat}
+
+\item{galaxiesOutput}{String indicating the name of the output file that will contain the galaxies properties. Default galaxiesOutput.dat}
+
+\item{classOutput}{String indicating the name of the output file that will contain the classification properties. Default ClassOutput.dat}
+
+\item{folder}{String indicating the name of the folder where the files will be saved. Default 'folder'.}
+
+\item{ClustersML}{Machine Learning model that will be used for the clusters classification. Default uses the already trained model.}
+
+\item{GalaxiesML}{Machine Learning model that will be used for the galaxies classification. Default uses the already trained model.}
+
+\item{ntotal}{Integer indicating the number of galaxy clusters inside the catalog. 0 indicates that this number is not known a priori and must be calculated while estimating the galaxy clusters features. Default 0.}
+
+\item{probLimit}{Number between 0 and 1, that indicates the treshold that must be used for determining if a cluster is in merger or not. Default 0.3.}
 }
 \value{
 NULL.
