@@ -1,6 +1,6 @@
 Package: MeSsI
 Title: Merging Systems Identification Algorithm
-Version: 2.0.0.0000
+Version: 3.0.0.0000
 Authors@R: 
     person(given = "First",
            family = "Last",
