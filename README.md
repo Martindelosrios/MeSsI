@@ -44,4 +44,4 @@ messi(cat, folder = 'test')
 
 # Authors
 
-Martín de los Rios.
+Martín de los Rios (ICTP-SAIFR/IFT-UNESP)
