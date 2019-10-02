@@ -340,11 +340,16 @@ ProjectedDistance <- function(cat){
 #' @examples
 #' ClusterFeatures(group)
 
-ClusterFeatures <- function(group){
-  ngroup       <- group$id[1]
-  ra           <- mean(group$ra)
-  dec          <- mean(group$dec)
-  z            <- mean(group$z)
+ClusterFeatures <- function(group, features){
+
+# Clusters general properties
+  id  <- group$id[1]
+  ra  <- mean(group$ra)
+  dec <- mean(group$dec)
+  z   <- mean(group$z)
+
+# Features estimation
+
   ngal         <- length(group$ra)
   color        <- mean(group$color)
   sort_mags    <- sort(group$mag, decreasing = FALSE)
