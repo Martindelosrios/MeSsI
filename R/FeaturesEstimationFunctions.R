@@ -80,7 +80,7 @@ get_distance <- function(x, x0, y, y0, ngal){
   for(i in 1:n){
     r[i] <- sqrt((((x0-x[i])**2)*cos(y0)*cos(y0))+((y[i]-y0)**2))
   }
-  r  <- sort(r,index.return=TRUE)
+  r  <- sort(r, index.return = TRUE)
   ri <- r$ix[2:(ngal+1)]
   return(ri)
 }
@@ -1026,24 +1026,56 @@ roc <- function(dat, real.name = 'class', pred.name = 'merProb'){
 #}}}
 # ngalFunction
 #{{{
+#' ngalFunction
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 ngalFunction <- function(group){
   return(length(group$ra))  
 }
 #}}}
 # colorFunction
 #{{{
+#' colorFunction
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 colorFunction <- function(group){
   return(mean(group$color))  
 }
 #}}}
 # mag_maxFunction
 #{{{
+#' mag_maxFunction
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 mag_maxFunction <- function(group){
   return(max(group$mag))
 }
 #}}}
 # gap_maxFunction
 #{{{
+#' gap_maxFunction
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 gap_maxFunction <- function(group){
   sort_mag <- sort(group$mag, decreasing = TRUE, index.return = FALSE)
   return((sort_mag[1]-sort_mag[2]))
@@ -1051,42 +1083,98 @@ gap_maxFunction <- function(group){
 #}}}
 # shapiro.testGroup
 #{{{
+#' shapiro.testgroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 shapiro.testGroup <- function(group){
   return(shapiro.test(group$z*300000.)$p.val)
 }
 #}}}
 # sf.testGroup
 #{{{
+#' sf.testGroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 sf.testGroup <- function(group){
   return(sf.test(group$z*300000.)$p.val)
 }
 #}}}
 # ad.testGroup
 #{{{
+#' ad.testGroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 ad.testGroup <- function(group){
   return(ad.test(group$z*300000.)$p.val)
 }
 #}}}
 # cvm.testGroup
 #{{{
+#' cvm.testGroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 cvm.testGroup <- function(group){
   return(cvm.test(group$z*300000.)$p.val)
 }
 #}}}
 # lillie.testGroup
 #{{{
+#' lillie.testGroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 lillie.testGroup <- function(group){
   return(lillie.test(group$z*300000.)$p.val)
 }
 #}}}
 # pearson.testGroup
 #{{{
+#' pearson.testGroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 pearson.testGroup <- function(group){
   return(pearson.test(group$z*300000.)$p.val)
 }
 #}}}
 # shapiro.testGals
 #{{{
+#' shapiro.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 shapiro.testGals <- function(group){
 
   ngals   <- length(group$ra)
@@ -1101,6 +1189,14 @@ shapiro.testGals <- function(group){
 #}}}
 # sf.testGals
 #{{{
+#' sf.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 sf.testGals <- function(group){
 
   ngals   <- length(group$ra)
@@ -1116,6 +1212,14 @@ sf.testGals <- function(group){
 #}}}
 # ad.testGals
 #{{{
+#' ad.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 ad.testGals <- function(group){
 
   ngals   <- length(group$ra)
@@ -1131,6 +1235,14 @@ ad.testGals <- function(group){
 #}}}
 # cvm.testGals
 #{{{
+#' cvm.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 cvm.testGals <- function(group){
 
   ngals   <- length(group$ra)
@@ -1146,6 +1258,14 @@ cvm.testGals <- function(group){
 #}}}
 # lillie.testGals
 #{{{
+#' lillie.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 lillie.testGals <- function(group){
 
   ngals   <- length(group$ra)
@@ -1161,6 +1281,14 @@ lillie.testGals <- function(group){
 #}}}
 # pearson.testGals
 #{{{
+#' pearson.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 pearson.testGals <- function(group){
 
   ngals   <- length(group$ra)
@@ -1176,6 +1304,14 @@ pearson.testGals <- function(group){
 #}}}
 # GroupFeatures 
 #{{{
+#' groupFeatures
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
 GroupFeatures <- function(group_gals, group_data, featuresNames){
   ngals <- length(group_gals$ra)
   nfeat <- length(group_data)
