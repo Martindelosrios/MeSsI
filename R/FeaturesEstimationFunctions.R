@@ -456,7 +456,7 @@ get_cluster_features_new <- function(dat, ntotal, name.groups){
                             DresslerShectmanIter, shapiro.testGroup, sf.testGroup,
                             ad.testGroup, cvm.testGroup,
                             lillie.testGroup, pearson.testGroup)
-  featuresNames <- c('ngal', 'color', 'mag_max', 'gap_max', 'Delta', 'Delta2', 'pval_ds',
+  featuresNames <- c('ngal', 'color', 'mag_max', 'gap_mag', 'Delta', 'Delta2', 'pval_ds',
                      'ind', 'pval_sw', 'pval_sf', 'pval_ad', 'pval_cvm', 'pval_lillie',
                      'pval_pearson')
 
@@ -708,7 +708,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, fold
   classification       <- predict(model, newdata = GalaxiesData, type = 'prob')
   GalaxiesData$relProb <- classification[,1]
   GalaxiesData$subProb <- classification[,2]
-  MergingClusters      <- subset(ClustersData$ngroup, ClustersData$merProb > probLimit)
+  MergingClusters      <- subset(ClustersData$ra, ClustersData$merProb > probLimit)
 
   counter <- 0
   if(length(MergingClusters) > 0){
