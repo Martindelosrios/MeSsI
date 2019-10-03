@@ -5,6 +5,11 @@ This package contain all the neccesary functions to perform the automatic analys
 # Prerequisites
 
 This software make an extensive usage of the following packages that must be installed: ```randomForest```, ```nortest```, ```cosmoFns```, ```mclust```, ```e1071```, ```beepr```, ```caret```, ```progress```. 
+You can install this packages inside an R-session with:
+
+```R
+install.packages(c('randomForest', 'nortest', 'cosmoFns', 'mclust', 'e1071', 'beepr', 'caret', 'progress'))
+``` 
 
 # Installation
 
@@ -44,4 +49,4 @@ messi(cat, folder = 'test')
 
 # Authors
 
-Martín de los Rios.
+Martín de los Rios (ICTP-SAIFR/IFT-UNESP)
