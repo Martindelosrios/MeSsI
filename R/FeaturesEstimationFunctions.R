@@ -650,13 +650,13 @@ get_galaxies_features_new <- function(dat, ClustersData, name.gal){
                          'cvm_cum', 'lillie_cum', 'pearson_cum', 'col_cum', 
                          'mag_cum', 'ind_cum')
 
-  nclusters <- length(ClustersData$ngroup) # Total number of galaxy clusters
+  nclusters <- length(ClustersData$id) # Total number of galaxy clusters
 
   pb <- progress_bar$new(total = nclusters)
   for(i in 1:nclusters){
     pb$tick()
 
-    group_gals    <- subset(dat, dat$id == ClustersData$ngroup[i]) # Id of the cluster that will be studied in this iteration
+    group_gals    <- subset(dat, dat$id == ClustersData$id[i]) # Id of the cluster that will be studied in this iteration
     group_data    <- ClustersData[i,] # Data of the cluster that will be studied in this iteration
     features  <- GalaxiesFeatures_new(group_gals, featuresFunctions, featuresNames) # Estimation of the galaxy features
     Gfeatures <- GroupFeatures(group_gals, group_data[,c(9,11,5,13,14,15,16,17,18,6,7,12)], GfeaturesNames)
