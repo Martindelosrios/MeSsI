@@ -869,7 +869,7 @@ messi <- function(cat = -99,
 
 SubstructureIdentification <- function(group, folder){
 
-  group.id <- paste(folder,'/merging_clusters/',toString(group$ngroup[1]),sep='')
+  group.id <- paste(folder,'/merging_clusters/',toString(group$id[1]),sep='')
   ngal     <- length(group$ra) 
   mat      <- group
 
@@ -924,7 +924,7 @@ SubstructureIdentification <- function(group, folder){
     }
   }
 
-  SubsProperties <- c(group.id = group$ngroup[1], FirstSubs, SecondSubs, rvir1, rvir2, dvel1, dvel2, mas1, mas2,
+  SubsProperties <- c(group.id = group$id[1], FirstSubs, SecondSubs, rvir1, rvir2, dvel1, dvel2, mas1, mas2,
          par1, par2, tot, racen1, racen2, deccen1, deccen2, velcen1, velcen2)
   return(as.data.frame(t(SubsProperties)))
 }
