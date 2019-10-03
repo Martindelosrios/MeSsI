@@ -717,7 +717,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, fold
     for(i in 1:length(MergingClusters)){
       pb$tick()
   
-      group <- subset(GalaxiesData, GalaxiesData$ngroup == MergingClusters[i])
+      group <- subset(GalaxiesData, GalaxiesData$id == MergingClusters[i])
       if(length(group$ra) > 10){
         counter <- counter+1
 
