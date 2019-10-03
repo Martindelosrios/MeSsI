@@ -341,7 +341,7 @@ ProjectedDistance <- function(cat){
 #' ClusterFeatures(group)
 
 ClusterFeatures <- function(group){
-  ngroup       <- group$id[1]
+  id           <- group$id[1]
   ra           <- mean(group$ra)
   dec          <- mean(group$dec)
   z            <- mean(group$z)
@@ -361,7 +361,7 @@ ClusterFeatures <- function(group){
   pval_lillie  <- lillie.test(group$z*300000.)$p.val
   pval_pearson <- pearson.test(group$z*300000.)$p.val
 
-  features <- data.frame(ngroup, ra, dec, z, ngal, color, mag_max, gap_mag, Delta, Delta2, pval_ds, ind, pval_sw, pval_sf, pval_ad, pval_cvm, pval_lillie, pval_pearson)
+  features <- data.frame(id, ra, dec, z, ngal, color, mag_max, gap_mag, Delta, Delta2, pval_ds, ind, pval_sw, pval_sf, pval_ad, pval_cvm, pval_lillie, pval_pearson)
   return(features)
 }
   
@@ -525,7 +525,7 @@ GalaxiesFeatures <- function(group_gals, group_data){
     pval_pearson[j] <- pearson.test(vel_loc)$p.value
   }
   
-  ngroup      <- group_data$ngroup
+  id          <- group_data$id
   ra          <- x
   dec         <- y
   z           <- vel/300000.
@@ -550,7 +550,7 @@ GalaxiesFeatures <- function(group_gals, group_data){
   mag_cum     <- replicate(ngals, group_data$mag)
   ind_cum     <- replicate(ngals, group_data$ind)
 
- features <- data.frame(ngroup, ra, dec, z, mag, color, delta, delta2, sw_gal, sf_gal, ad_gal,
+ features <- data.frame(id, ra, dec, z, mag, color, delta, delta2, sw_gal, sf_gal, ad_gal,
                         cvm_gal, lillie_gal, pearson_gal, Delta, pval_ds, ngal, 
                         sw_cum, sf_cum, ad_cum, cvm_cum, lillie_cum, pearson_cum,
                         col_cum, mag_cum, ind_cum)
@@ -570,13 +570,13 @@ GalaxiesFeatures <- function(group_gals, group_data){
 #' get_galaxies_features(dat, ClustersData)
 
 get_galaxies_features <- function(dat, ClustersData, name.gal){
-  nclusters <- length(ClustersData$ngroup) # Total number of galaxy clusters
+  nclusters <- length(ClustersData$id) # Total number of galaxy clusters
 
   pb <- progress_bar$new(total = nclusters)
   for(i in 1:nclusters){
     pb$tick()
 
-    group_gals    <- subset(dat, dat$id == ClustersData$ngroup[i]) # Id of the cluster that will be studied in this iteration
+    group_gals    <- subset(dat, dat$id == ClustersData$id[i]) # Id of the cluster that will be studied in this iteration
     group_data    <- ClustersData[i,] # Data of the cluster that will be studied in this iteration
     features <- GalaxiesFeatures(group_gals, group_data) # Estimation of the galaxy features
     if(i == 1){
@@ -708,7 +708,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, fold
   classification       <- predict(model, newdata = GalaxiesData, type = 'prob')
   GalaxiesData$relProb <- classification[,1]
   GalaxiesData$subProb <- classification[,2]
-  MergingClusters      <- subset(ClustersData$ra, ClustersData$merProb > probLimit)
+  MergingClusters      <- subset(ClustersData$id, ClustersData$merProb > probLimit)
 
   counter <- 0
   if(length(MergingClusters) > 0){
@@ -1064,7 +1064,7 @@ colorFunction <- function(group){
 #' SubstructureIdentification(group)
 
 mag_maxFunction <- function(group){
-  return(max(group$mag))
+  return(min(group$mag))
 }
 #}}}
 # gap_maxFunction
@@ -1078,8 +1078,8 @@ mag_maxFunction <- function(group){
 #' SubstructureIdentification(group)
 
 gap_maxFunction <- function(group){
-  sort_mag <- sort(group$mag, decreasing = TRUE, index.return = FALSE)
-  return((sort_mag[1]-sort_mag[2]))
+  sort_mag <- sort(group$mag, decreasing = FALSE, index.return = FALSE)
+  return((sort_mag[2]-sort_mag[1]))
 }
 #}}}
 # shapiro.testGroup
