@@ -80,7 +80,7 @@ get_distance <- function(x, x0, y, y0, ngal){
   for(i in 1:n){
     r[i] <- sqrt((((x0-x[i])**2)*cos(y0)*cos(y0))+((y[i]-y0)**2))
   }
-  r  <- sort(r,index.return=TRUE)
+  r  <- sort(r, index.return = TRUE)
   ri <- r$ix[2:(ngal+1)]
   return(ri)
 }
@@ -172,7 +172,7 @@ DresslerShectmanGalaxy <- function(vr, r){
 DresslerShectmanPval <- function(cat){
   n     <- length(cat$z*300000.)
   nran  <- 0
-  nmont <- 100
+  nmont <- 300
   del   <- DresslerShectmanTest(cat)
   mat   <- cat # we will modify mat in each iteration
 
@@ -341,7 +341,7 @@ ProjectedDistance <- function(cat){
 #' ClusterFeatures(group)
 
 ClusterFeatures <- function(group){
-  ngroup       <- group$id[1]
+  id           <- group$id[1]
   ra           <- mean(group$ra)
   dec          <- mean(group$dec)
   z            <- mean(group$z)
@@ -361,7 +361,7 @@ ClusterFeatures <- function(group){
   pval_lillie  <- lillie.test(group$z*300000.)$p.val
   pval_pearson <- pearson.test(group$z*300000.)$p.val
 
-  features <- data.frame(ngroup, ra, dec, z, ngal, color, mag_max, gap_mag, Delta, Delta2, pval_ds, ind, pval_sw, pval_sf, pval_ad, pval_cvm, pval_lillie, pval_pearson)
+  features <- data.frame(id, ra, dec, z, ngal, color, mag_max, gap_mag, Delta, Delta2, pval_ds, ind, pval_sw, pval_sf, pval_ad, pval_cvm, pval_lillie, pval_pearson)
   return(features)
 }
   
@@ -392,6 +392,88 @@ get_cluster_features <- function(dat, ntotal, name.groups){
     if(length(group$ra) > ngal.lim){ # Cut in the number of member galaxies
       counter  <- counter+1
       features <- ClusterFeatures(group) # Estimates the features
+      if(counter == 1){
+        Allfeatures <- features
+      } else {
+        Allfeatures <- rbind(Allfeatures, features)
+      }
+    }
+  }
+  write.table(Allfeatures, file = name.groups, row.names = FALSE)
+  return(Allfeatures)
+}
+#}}}
+# ClusterFeatures_new
+#{{{
+#' ClusterFeatures_new
+#' @description This function estimates the features for a galaxy cluster.
+#' @param 
+#' group Data frame with a the angular coordinates (ra and dec in radians), the redshift, the color (g-r), the apparent magnitude (r) and the id of the group for each galaxy. The columns must be named 'ra', 'dec' and 'z', 'color', 'mag' and 'id'.
+#' @return Data frame with the features of the galaxy cluster.
+#' @export
+#' @examples
+#' ClusterFeatures(group)
+
+ClusterFeatures_new <- function(group, featuresFunctions, featuresNames = NULL){
+
+# Clusters general properties
+  id  <- group$id[1]
+  ra  <- mean(group$ra)
+  dec <- mean(group$dec)
+  z   <- mean(group$z)
+
+# Features estimation
+  nfeat    <- length(featuresFunctions)
+  features <- 1:nfeat
+  for(i in 1:nfeat){
+    features[i] <- featuresFunctions[[i]](group)
+  }
+
+  featMAT <- data.frame(id, ra, dec, z)
+  featMAT <- cbind(featMAT, as.data.frame(t(features)))
+  if(is.null(featuresNames) == FALSE){
+    colnames(featMAT) <- c('id', 'ra', 'dec', 'z', featuresNames)
+  }
+  return(featMAT)
+}
+  
+#}}}
+# get_cluster_features_new
+#{{{
+#' get_cluster_features_new
+#' @description This function estimates the features for a catalog of galaxy clusters.
+#' @param 
+#' dat Data frame with a the angular coordinates (ra and dec in radians), the redshift, the color (g-r), the apparent magnitude (r) and the id of the group for each galaxy of each galaxy cluster. The columns must be named 'ra', 'dec' and 'z', 'color', 'mag' and 'id'.
+#' @return Data frame with the features of all the galaxy clusters.
+#' @export
+#' @examples
+#' get_cluster_features(dat)
+
+get_cluster_features_new <- function(dat, ntotal, name.groups){
+
+  featuresFunctions <- list(ngalFunction, colorFunction, mag_maxFunction, gap_magFunction,
+                            DresslerShectmanTest, DresslerShectmanTest2, DresslerShectmanPval,
+                            DresslerShectmanIter, shapiro.testGroup, sf.testGroup,
+                            ad.testGroup, cvm.testGroup,
+                            lillie.testGroup, pearson.testGroup)
+  featuresNames <- c('ngal', 'color', 'mag_max', 'gap_mag', 'Delta', 'Delta2', 'pval_ds',
+                     'ind', 'pval_sw', 'pval_sf', 'pval_ad', 'pval_cvm', 'pval_lillie',
+                     'pval_pearson')
+
+  counter  <- 0
+  ngal.lim <- 30
+
+  pb <- progress_bar$new(total = floor(ntotal/30))
+  for(i in 1:ntotal){
+    pb$tick()
+
+    if(length(dat$ra) == 0){break}
+    groupid <- dat$id[1] # Id if the group that will be studied
+    group   <- subset(dat, dat$id == groupid) # Select the galaxies of the group
+    dat     <- subset(dat, dat$id != groupid) # Remove the galaxies of the group from the general catalog
+    if(length(group$ra) > ngal.lim){ # Cut in the number of member galaxies
+      counter  <- counter+1
+      features <- ClusterFeatures_new(group, featuresFunctions, featuresNames) # Estimates the features
       if(counter == 1){
         Allfeatures <- features
       } else {
@@ -443,7 +525,7 @@ GalaxiesFeatures <- function(group_gals, group_data){
     pval_pearson[j] <- pearson.test(vel_loc)$p.value
   }
   
-  ngroup      <- group_data$ngroup
+  id          <- group_data$id
   ra          <- x
   dec         <- y
   z           <- vel/300000.
@@ -468,7 +550,7 @@ GalaxiesFeatures <- function(group_gals, group_data){
   mag_cum     <- replicate(ngals, group_data$mag)
   ind_cum     <- replicate(ngals, group_data$ind)
 
- features <- data.frame(ngroup, ra, dec, z, mag, color, delta, delta2, sw_gal, sf_gal, ad_gal,
+ features <- data.frame(id, ra, dec, z, mag, color, delta, delta2, sw_gal, sf_gal, ad_gal,
                         cvm_gal, lillie_gal, pearson_gal, Delta, pval_ds, ngal, 
                         sw_cum, sf_cum, ad_cum, cvm_cum, lillie_cum, pearson_cum,
                         col_cum, mag_cum, ind_cum)
@@ -488,15 +570,97 @@ GalaxiesFeatures <- function(group_gals, group_data){
 #' get_galaxies_features(dat, ClustersData)
 
 get_galaxies_features <- function(dat, ClustersData, name.gal){
-  nclusters <- length(ClustersData$ngroup) # Total number of galaxy clusters
+  nclusters <- length(ClustersData$id) # Total number of galaxy clusters
 
   pb <- progress_bar$new(total = nclusters)
   for(i in 1:nclusters){
     pb$tick()
 
-    group_gals    <- subset(dat, dat$id == ClustersData$ngroup[i]) # Id of the cluster that will be studied in this iteration
+    group_gals    <- subset(dat, dat$id == ClustersData$id[i]) # Id of the cluster that will be studied in this iteration
     group_data    <- ClustersData[i,] # Data of the cluster that will be studied in this iteration
     features <- GalaxiesFeatures(group_gals, group_data) # Estimation of the galaxy features
+    if(i == 1){
+      AllGalaxyfeatures <- features
+    } else {
+      AllGalaxyfeatures <- rbind(AllGalaxyfeatures, features)
+    }
+  }
+  write.table(AllGalaxyfeatures, file = name.gal, row.names = FALSE, quote = FALSE)
+  return(AllGalaxyfeatures)
+}
+
+#}}}
+# GalaxiesFeatures_new
+#{{{
+#' GalaxiesFeatures_new
+#' @description This function estimates the features for the galaxies of a galaxy cluster.
+#' @param group_gals Data frame with a the angular coordinates (ra and dec in radians), the redshift, the color (g-r), the apparent magnitude (r) and the id of the group for each galaxy. The columns must be named 'ra', 'dec' and 'z', 'color', 'mag' and 'id'.
+#' @param group_data Data frame with a the data corresponding to the galaxy cluster. Must be an object with the same data as the output of ClusterFeatures.
+#' @return Data frame with the features of the galaxies.
+#' @export
+#' @examples
+#' GalaxiesFeatures(group_gals, group_data)
+
+GalaxiesFeatures_new <- function(group, featuresFunctions, featuresNames){
+  ngals <- length(group$id) # Number of member galaxies of this cluster
+
+# General properties of the galaxies
+  id    <- group$id
+  ra    <- group$ra
+  dec   <- group$dec
+  z     <- group$z
+  mag   <- group$mag
+  color <- group$color
+  
+# Estimating features
+  nfeat <- length(featuresFunctions)
+  mat   <- matrix(0, ncol = nfeat, nrow = ngals)
+  for(i in 1:nfeat){
+    mat[,i] <- featuresFunctions[[i]](group) 
+  }
+  featMAT <- data.frame(id, ra, dec, z, mag, color)
+  featMAT <- cbind(featMAT, data.frame(mat))
+ 
+  if(is.null(featuresNames) == FALSE){
+    colnames(featMAT)[-(1:6)] <- featuresNames
+  }
+
+  return(featMAT)
+}
+#}}}
+# get_galaxies_features_new
+#{{{
+#' get_galaxies_features_new
+#' @description This function estimates the features for a catalog of galaxies.
+#' @param dat Data frame with a the angular coordinates (ra and dec in radians), the redshift, the color (g-r), the apparent magnitude (r) and the id of the group for each galaxy of each galaxy cluster. The columns must be named 'ra', 'dec' and 'z', 'color', 'mag' and 'id'.
+#' @param ClustersData Data frame with a the information of the galaxy cluster. Must have the same data as the output of ClusterFeatures.
+#' @return Data frame with the features of all the galaxies of the catalog.
+#' @export
+#' @examples
+#' get_galaxies_features(dat, ClustersData)
+
+get_galaxies_features_new <- function(dat, ClustersData, name.gal){
+
+  featuresFunctions <- list(DresslerShectmanIndividual, DresslerShectmanIndividual2, 
+                         shapiro.testGals, sf.testGals, ad.testGals, cvm.testGals,
+                         lillie.testGals, pearson.testGals)
+  featuresNames     <- c('delta', 'delta2', 'sw_gal', 'sf_gal', 'ad_gal', 'cvm_gal', 
+                         'lillie_gal', 'pearson_gal')
+  GfeaturesNames    <- c('Delta', 'pval_ds', 'ngal', 'sw_cum','sf_cum', 'ad_cum', 
+                         'cvm_cum', 'lillie_cum', 'pearson_cum', 'col_cum', 
+                         'mag_cum', 'ind_cum')
+
+  nclusters <- length(ClustersData$id) # Total number of galaxy clusters
+
+  pb <- progress_bar$new(total = nclusters)
+  for(i in 1:nclusters){
+    pb$tick()
+
+    group_gals    <- subset(dat, dat$id == ClustersData$id[i]) # Id of the cluster that will be studied in this iteration
+    group_data    <- ClustersData[i,] # Data of the cluster that will be studied in this iteration
+    features  <- GalaxiesFeatures_new(group_gals, featuresFunctions, featuresNames) # Estimation of the galaxy features
+    Gfeatures <- GroupFeatures(group_gals, group_data[,c(9,11,5,13,14,15,16,17,18,6,7,12)], GfeaturesNames)
+    features  <- cbind(features, Gfeatures)
     if(i == 1){
       AllGalaxyfeatures <- features
     } else {
@@ -544,7 +708,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, fold
   classification       <- predict(model, newdata = GalaxiesData, type = 'prob')
   GalaxiesData$relProb <- classification[,1]
   GalaxiesData$subProb <- classification[,2]
-  MergingClusters      <- subset(ClustersData$ngroup, ClustersData$merProb > probLimit)
+  MergingClusters      <- subset(ClustersData$id, ClustersData$merProb > probLimit)
 
   counter <- 0
   if(length(MergingClusters) > 0){
@@ -553,7 +717,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, fold
     for(i in 1:length(MergingClusters)){
       pb$tick()
   
-      group <- subset(GalaxiesData, GalaxiesData$ngroup == MergingClusters[i])
+      group <- subset(GalaxiesData, GalaxiesData$id == MergingClusters[i])
       if(length(group$ra) > 10){
         counter <- counter+1
 
@@ -705,7 +869,7 @@ messi <- function(cat = -99,
 
 SubstructureIdentification <- function(group, folder){
 
-  group.id <- paste(folder,'/merging_clusters/',toString(group$ngroup[1]),sep='')
+  group.id <- paste(folder,'/merging_clusters/',toString(group$id[1]),sep='')
   ngal     <- length(group$ra) 
   mat      <- group
 
@@ -760,7 +924,7 @@ SubstructureIdentification <- function(group, folder){
     }
   }
 
-  SubsProperties <- c(group.id = group$ngroup[1], FirstSubs, SecondSubs, rvir1, rvir2, dvel1, dvel2, mas1, mas2,
+  SubsProperties <- c(group.id = group$id[1], FirstSubs, SecondSubs, rvir1, rvir2, dvel1, dvel2, mas1, mas2,
          par1, par2, tot, racen1, racen2, deccen1, deccen2, velcen1, velcen2)
   return(as.data.frame(t(SubsProperties)))
 }
@@ -861,7 +1025,309 @@ roc <- function(dat, real.name = 'class', pred.name = 'merProb'){
 
 
 #}}}
+# ngalFunction
+#{{{
+#' ngalFunction
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
 
+ngalFunction <- function(group){
+  return(length(group$ra))  
+}
+#}}}
+# colorFunction
+#{{{
+#' colorFunction
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+colorFunction <- function(group){
+  return(mean(group$color))  
+}
+#}}}
+# mag_maxFunction
+#{{{
+#' mag_maxFunction
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+mag_maxFunction <- function(group){
+  return(min(group$mag))
+}
+#}}}
+# gap_magFunction
+#{{{
+#' gap_magFunction
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+gap_magFunction <- function(group){
+  sort_mag <- sort(group$mag, decreasing = FALSE, index.return = FALSE)
+  return((sort_mag[2]-sort_mag[1]))
+}
+#}}}
+# shapiro.testGroup
+#{{{
+#' shapiro.testgroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+shapiro.testGroup <- function(group){
+  return(shapiro.test(group$z*300000.)$p.val)
+}
+#}}}
+# sf.testGroup
+#{{{
+#' sf.testGroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+sf.testGroup <- function(group){
+  return(sf.test(group$z*300000.)$p.val)
+}
+#}}}
+# ad.testGroup
+#{{{
+#' ad.testGroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+ad.testGroup <- function(group){
+  return(ad.test(group$z*300000.)$p.val)
+}
+#}}}
+# cvm.testGroup
+#{{{
+#' cvm.testGroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+cvm.testGroup <- function(group){
+  return(cvm.test(group$z*300000.)$p.val)
+}
+#}}}
+# lillie.testGroup
+#{{{
+#' lillie.testGroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+lillie.testGroup <- function(group){
+  return(lillie.test(group$z*300000.)$p.val)
+}
+#}}}
+# pearson.testGroup
+#{{{
+#' pearson.testGroup
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+pearson.testGroup <- function(group){
+  return(pearson.test(group$z*300000.)$p.val)
+}
+#}}}
+# shapiro.testGals
+#{{{
+#' shapiro.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+shapiro.testGals <- function(group){
+
+  ngals   <- length(group$ra)
+  pval_sw <- 1:ngals 
+  for(j in 1:ngals){
+    r          <- get_distance(group$ra, group$ra[j], group$dec, group$dec[j], ngal = 10)
+    vel_loc    <- group$z[r]*300000.
+    pval_sw[j] <- shapiro.test(vel_loc)$p.value
+  }
+  return(pval_sw)
+}
+#}}}
+# sf.testGals
+#{{{
+#' sf.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+sf.testGals <- function(group){
+
+  ngals   <- length(group$ra)
+  pval_sf <- 1:ngals 
+  for(j in 1:ngals){
+    r       <- get_distance(group$ra, group$ra[j], group$dec, group$dec[j], ngal = 10)
+    vel_loc <- group$z[r]*300000.
+  
+    pval_sf[j]      <- sf.test(vel_loc)$p.value
+  }
+  return(pval_sf)
+}
+#}}}
+# ad.testGals
+#{{{
+#' ad.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+ad.testGals <- function(group){
+
+  ngals   <- length(group$ra)
+  pval_ad <- 1:ngals 
+  for(j in 1:ngals){
+    r       <- get_distance(group$ra, group$ra[j], group$dec, group$dec[j], ngal = 10)
+    vel_loc <- group$z[r]*300000.
+  
+    pval_ad[j]      <- ad.test(vel_loc)$p.value
+  }
+  return(pval_ad)
+}
+#}}}
+# cvm.testGals
+#{{{
+#' cvm.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+cvm.testGals <- function(group){
+
+  ngals   <- length(group$ra)
+  pval_cvm <- 1:ngals 
+  for(j in 1:ngals){
+    r       <- get_distance(group$ra, group$ra[j], group$dec, group$dec[j], ngal = 10)
+    vel_loc <- group$z[r]*300000.
+  
+    pval_cvm[j]     <- cvm.test(vel_loc)$p.value
+  }
+  return(pval_cvm)
+}
+#}}}
+# lillie.testGals
+#{{{
+#' lillie.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+lillie.testGals <- function(group){
+
+  ngals   <- length(group$ra)
+  pval_lillie <- 1:ngals 
+  for(j in 1:ngals){
+    r       <- get_distance(group$ra, group$ra[j], group$dec, group$dec[j], ngal = 10)
+    vel_loc <- group$z[r]*300000.
+  
+    pval_lillie[j]  <- lillie.test(vel_loc)$p.value
+  }
+  return(pval_lillie)
+}
+#}}}
+# pearson.testGals
+#{{{
+#' pearson.testGals
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+pearson.testGals <- function(group){
+
+  ngals   <- length(group$ra)
+  pval_pearson <- 1:ngals 
+  for(j in 1:ngals){
+    r       <- get_distance(group$ra, group$ra[j], group$dec, group$dec[j], ngal = 10)
+    vel_loc <- group$z[r]*300000.
+  
+    pval_pearson[j] <- pearson.test(vel_loc)$p.value
+  }
+  return(pval_pearson)
+}
+#}}}
+# GroupFeatures 
+#{{{
+#' groupFeatures
+#' @description This function performs the identification of the substructures inside a galaxy cluster.
+#' @param group Data frame with the galaxies of the cluster. 
+#' @return Vector with the properties of the substructures.
+#' @export
+#' @examples
+#' SubstructureIdentification(group)
+
+GroupFeatures <- function(group_gals, group_data, featuresNames){
+  ngals <- length(group_gals$ra)
+  nfeat <- length(group_data)
+
+  mat <- matrix(0, ncol = nfeat, nrow = ngals)
+  for(i in 1:nfeat){
+    mat[,i] <- replicate(ngals, group_data[,i])
+  } 
+  mat <- data.frame(mat)
+  if(is.null(featuresNames) == FALSE){
+    colnames(mat) <- featuresNames
+  }
+  return(mat)
+}
+#}}}
 
 
 
