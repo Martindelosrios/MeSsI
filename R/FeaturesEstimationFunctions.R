@@ -172,7 +172,7 @@ DresslerShectmanGalaxy <- function(vr, r){
 DresslerShectmanPval <- function(cat){
   n     <- length(cat$z*300000.)
   nran  <- 0
-  nmont <- 100
+  nmont <- 300
   del   <- DresslerShectmanTest(cat)
   mat   <- cat # we will modify mat in each iteration
 
@@ -451,7 +451,7 @@ ClusterFeatures_new <- function(group, featuresFunctions, featuresNames = NULL){
 
 get_cluster_features_new <- function(dat, ntotal, name.groups){
 
-  featuresFunctions <- list(ngalFunction, colorFunction, mag_maxFunction, gap_maxFunction,
+  featuresFunctions <- list(ngalFunction, colorFunction, mag_maxFunction, gap_magFunction,
                             DresslerShectmanTest, DresslerShectmanTest2, DresslerShectmanPval,
                             DresslerShectmanIter, shapiro.testGroup, sf.testGroup,
                             ad.testGroup, cvm.testGroup,
@@ -801,7 +801,7 @@ messi <- function(cat = -99,
   if(clusters == TRUE){
     print('Starting the estimation of the galaxy clusters features')
     if(ntotal == 0){ntotal <- length(cat$ra)}
-    ClustersData <- get_cluster_features_new(cat, ntotal, name.groups)
+    ClustersData <- get_cluster_features(cat, ntotal, name.groups)
   }
 
 # ---------------------------------------------------------------------------------------
@@ -810,7 +810,7 @@ messi <- function(cat = -99,
 
   if(galaxies == TRUE){
     print('Starting the estimation of the galaxy features')
-    GalaxiesData <- get_galaxies_features_new(cat, ClustersData, name.gal)
+    GalaxiesData <- get_galaxies_features(cat, ClustersData, name.gal)
   }
 
 # ---------------------------------------------------------------------------------------
@@ -1067,9 +1067,9 @@ mag_maxFunction <- function(group){
   return(min(group$mag))
 }
 #}}}
-# gap_maxFunction
+# gap_magFunction
 #{{{
-#' gap_maxFunction
+#' gap_magFunction
 #' @description This function performs the identification of the substructures inside a galaxy cluster.
 #' @param group Data frame with the galaxies of the cluster. 
 #' @return Vector with the properties of the substructures.
@@ -1077,7 +1077,7 @@ mag_maxFunction <- function(group){
 #' @examples
 #' SubstructureIdentification(group)
 
-gap_maxFunction <- function(group){
+gap_magFunction <- function(group){
   sort_mag <- sort(group$mag, decreasing = FALSE, index.return = FALSE)
   return((sort_mag[2]-sort_mag[1]))
 }
