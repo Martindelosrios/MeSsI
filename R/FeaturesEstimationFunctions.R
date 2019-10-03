@@ -852,6 +852,7 @@ messi <- function(cat = -99,
 
   t2 <- proc.time()
   t  <- (t2[3]-t1[3])
+  beep(8)
   print(paste('The program delay',toString(t/60),'minutes',sep=' '))
 }
 #}}}
