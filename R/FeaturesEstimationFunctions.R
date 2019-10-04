@@ -377,7 +377,7 @@ ClusterFeatures <- function(group){
 #' @examples
 #' get_cluster_features(dat)
 
-get_cluster_features <- function(dat, ntotal, name.groups){
+get_cluster_features <- function(dat, ntotal = 0, name.groups = 'clustersOutput.dat'){
   counter  <- 0
   ngal.lim <- 30
 
@@ -570,7 +570,7 @@ GalaxiesFeatures <- function(group_gals, group_data){
 #' @examples
 #' get_galaxies_features(dat, ClustersData)
 
-get_galaxies_features <- function(dat, ClustersData, name.gal){
+get_galaxies_features <- function(dat, ClustersData, name.gal = 'galaxiesOutput.dat'){
   nclusters <- length(ClustersData$id) # Total number of galaxy clusters
 
   pb <- progress_bar$new(total = nclusters)
@@ -640,7 +640,7 @@ GalaxiesFeatures_new <- function(group, featuresFunctions, featuresNames){
 #' @examples
 #' get_galaxies_features(dat, ClustersData)
 
-get_galaxies_features_new <- function(dat, ClustersData, name.gal){
+get_galaxies_features_new <- function(dat, ClustersData, name.gal = 'galaxiesOutput.dat'){
 
   featuresFunctions <- list(DresslerShectmanIndividual, DresslerShectmanIndividual2, 
                          shapiro.testGals, sf.testGals, ad.testGals, cvm.testGals,

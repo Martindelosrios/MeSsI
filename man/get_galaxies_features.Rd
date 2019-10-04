@@ -4,7 +4,7 @@
 \alias{get_galaxies_features}
 \title{get_galaxies_features}
 \usage{
-get_galaxies_features(dat, ClustersData, name.gal)
+get_galaxies_features(dat, ClustersData, name.gal = "galaxiesOutput.dat")
 }
 \arguments{
 \item{dat}{Data frame with a the angular coordinates (ra and dec in radians), the redshift, the color (g-r), the apparent magnitude (r) and the id of the group for each galaxy of each galaxy cluster. The columns must be named 'ra', 'dec' and 'z', 'color', 'mag' and 'id'.}
