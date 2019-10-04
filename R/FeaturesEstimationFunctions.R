@@ -449,7 +449,7 @@ ClusterFeatures_new <- function(group, featuresFunctions, featuresNames = NULL){
 #' @examples
 #' get_cluster_features(dat)
 
-get_cluster_features_new <- function(dat, ntotal, name.groups){
+get_cluster_features_new <- function(dat, ntotal = 0, name.groups = 'clustersOutput.dat'){
 
   featuresFunctions <- list(ngalFunction, colorFunction, mag_maxFunction, gap_magFunction,
                             DresslerShectmanTest, DresslerShectmanTest2, DresslerShectmanPval,
@@ -463,6 +463,7 @@ get_cluster_features_new <- function(dat, ntotal, name.groups){
   counter  <- 0
   ngal.lim <- 30
 
+  if(ntotal == 0){ntotal <- length(dat$ra)}
   pb <- progress_bar$new(total = floor(ntotal/30))
   for(i in 1:ntotal){
     pb$tick()
