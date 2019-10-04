@@ -449,16 +449,17 @@ ClusterFeatures_new <- function(group, featuresFunctions, featuresNames = NULL){
 #' @examples
 #' get_cluster_features(dat)
 
-get_cluster_features_new <- function(dat, ntotal = 0, name.groups = 'clustersOutput.dat'){
+get_cluster_features_new <- function(dat, ntotal = 0, name.groups = 'clustersOutput.dat',
+              featuresFunctions = list(ngalFunction, colorFunction, mag_maxFunction, 
+                                       gap_magFunction, DresslerShectmanTest, 
+                                       DresslerShectmanTest2, DresslerShectmanPval,
+                                       DresslerShectmanIter, shapiro.testGroup, sf.testGroup,
+                                       ad.testGroup, cvm.testGroup,
+                                       lillie.testGroup, pearson.testGroup),
+              featuresNames = c('ngal', 'color', 'mag_max', 'gap_mag', 'Delta', 'Delta2',
+                                 'pval_ds', 'ind', 'pval_sw', 'pval_sf', 'pval_ad',
+                                 'pval_cvm', 'pval_lillie','pval_pearson')){
 
-  featuresFunctions <- list(ngalFunction, colorFunction, mag_maxFunction, gap_magFunction,
-                            DresslerShectmanTest, DresslerShectmanTest2, DresslerShectmanPval,
-                            DresslerShectmanIter, shapiro.testGroup, sf.testGroup,
-                            ad.testGroup, cvm.testGroup,
-                            lillie.testGroup, pearson.testGroup)
-  featuresNames <- c('ngal', 'color', 'mag_max', 'gap_mag', 'Delta', 'Delta2', 'pval_ds',
-                     'ind', 'pval_sw', 'pval_sf', 'pval_ad', 'pval_cvm', 'pval_lillie',
-                     'pval_pearson')
 
   counter  <- 0
   ngal.lim <- 30
@@ -640,16 +641,21 @@ GalaxiesFeatures_new <- function(group, featuresFunctions, featuresNames){
 #' @examples
 #' get_galaxies_features(dat, ClustersData)
 
-get_galaxies_features_new <- function(dat, ClustersData, name.gal = 'galaxiesOutput.dat'){
+get_galaxies_features_new <- function(dat, ClustersData, name.gal = 'galaxiesOutput.dat',
+                                      featuresFunctions = list(DresslerShectmanIndividual, 
+                                      DresslerShectmanIndividual2, shapiro.testGals, 
+                                      sf.testGals, ad.testGals, cvm.testGals,
+                                      lillie.testGals, pearson.testGals),
+                                      featuresNames = c('delta', 'delta2', 'sw_gal', 
+                                                        'sf_gal', 'ad_gal', 'cvm_gal', 
+                                                        'lillie_gal', 'pearson_gal'),
+                                      GfeaturesNames = c('Delta', 'pval_ds', 'ngal',
+                                                         'sw_cum','sf_cum', 'ad_cum', 
+                                                         'cvm_cum', 'lillie_cum', 
+                                                         'pearson_cum', 'col_cum', 
+                                                         'mag_cum', 'ind_cum')
+){
 
-  featuresFunctions <- list(DresslerShectmanIndividual, DresslerShectmanIndividual2, 
-                         shapiro.testGals, sf.testGals, ad.testGals, cvm.testGals,
-                         lillie.testGals, pearson.testGals)
-  featuresNames     <- c('delta', 'delta2', 'sw_gal', 'sf_gal', 'ad_gal', 'cvm_gal', 
-                         'lillie_gal', 'pearson_gal')
-  GfeaturesNames    <- c('Delta', 'pval_ds', 'ngal', 'sw_cum','sf_cum', 'ad_cum', 
-                         'cvm_cum', 'lillie_cum', 'pearson_cum', 'col_cum', 
-                         'mag_cum', 'ind_cum')
 
   nclusters <- length(ClustersData$id) # Total number of galaxy clusters
 

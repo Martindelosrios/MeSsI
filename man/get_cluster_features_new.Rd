@@ -5,7 +5,14 @@
 \title{get_cluster_features_new}
 \usage{
 get_cluster_features_new(dat, ntotal = 0,
-  name.groups = "clustersOutput.dat")
+  name.groups = "clustersOutput.dat",
+  featuresFunctions = list(ngalFunction, colorFunction, mag_maxFunction,
+  gap_magFunction, DresslerShectmanTest, DresslerShectmanTest2,
+  DresslerShectmanPval, DresslerShectmanIter, shapiro.testGroup,
+  sf.testGroup, ad.testGroup, cvm.testGroup, lillie.testGroup,
+  pearson.testGroup), featuresNames = c("ngal", "color", "mag_max",
+  "gap_mag", "Delta", "Delta2", "pval_ds", "ind", "pval_sw", "pval_sf",
+  "pval_ad", "pval_cvm", "pval_lillie", "pval_pearson"))
 }
 \arguments{
 \item{dat}{Data frame with a the angular coordinates (ra and dec in radians), the redshift, the color (g-r), the apparent magnitude (r) and the id of the group for each galaxy of each galaxy cluster. The columns must be named 'ra', 'dec' and 'z', 'color', 'mag' and 'id'.}
