@@ -1335,6 +1335,107 @@ GroupFeatures <- function(group_gals, group_data, featuresNames){
   return(mat)
 }
 #}}}
+# Wen Features
+#{{{
+
+
+gaussian_kernel <- function(x, y, sigma){
+  fac <- 1/(2*pi*(sigma**2.))
+  val <- fac*exp(-(x**2 + y**2)/(2*(sigma**2)))
+  return(val)
+}
+
+smooth_map <- function(group){
+  npix    <- 100
+  xpix    <- seq(from = min(group$ra), to = max(group$ra), length.out = npix)
+  ypix    <- seq(from = min(group$dec), to = max(group$dec), length.out = npix)
+  ngal    <- length(group$ra)
+  ra0     <- mean(group$ra)
+  dec0    <- mean(group$dec)
+  dgal    <- D.L(group$z)
+  Mag     <- group$mag-5*log(dgal)+5
+  Lum     <- 10**(-0.4*Mag)
+  Ltot    <- sum(Lum)
+  r200    <- 1 #exp(-0.57 + 0.44*log())
+  sigma_a <- 0.03
+  sigma_b <- 0.15
+  
+  I <- matrix(0, nrow = npix, ncol = npix)
+  for(i in 1:npix){
+    for(j in 1:npix){
+      for(k in 1:ngal){
+        x <- group$ra[k]  - xpix[i] 
+        y <- group$dec[k] - ypix[j] 
+        r <- (group$ra[k] - ra0)**2 + (group$dec[k] - dec0)**2
+        sigma  <- r200*(sigma_a + sigma_b*r/r200)
+        I[i,j] <- I[i,j] + Lum[k]*gaussian_kernel(x, y, sigma)
+      }
+    }
+  }
+
+  return(I)
+}
+
+king1d <- function(r){
+  I0  <- 
+  r0  <- 
+  val <- I0/(1. + (r/r0)**2)
+}
+
+assymetry_factor <- function(I){
+
+  npix <- sqrt(length(I))
+  S    <- sum(I**2)
+
+  Delta <- 0
+  for(i in 1:npix){
+    for(i in 1:npix){
+      Delta <- Delta + (I[i, j]-I[(npix-i+1), (npix-j+1)])**2
+    }
+  }
+  Delta <- Delta/2
+  alfa  <- Delta/S
+  return(alfa)
+}
+
+tita <- matrix(0, nrow = npix, ncol = npix)
+dist <- matrix(0, nrow = npix, ncol = npix)
+for(i in 1:npix){
+  for(j in 1:npix){
+    tita[i,j] <- atan2(y = (j-npix/2), x = (i-npix/2))
+    dist[i,j] <- sqrt((j-npix/2)**2 + (i-npix/2)**2)
+  }
+}
+
+tita[which(tita < 0)] <- tita[which(tita < 0)]+2*pi 
+
+ridge <- function(I){
+
+  dbins  <- seq(from = 0, to = 70, length.out = 20)
+  xbins <- 1:19
+  for(i in 1:19){
+    xbins[i]  <- dbins[i]+(dbins[i+1]-dbins[i])/2 
+  }
+  wedges <- seq(from = 0, to = 2*pi, length.out = 20)
+ 
+  mean_profile   <- 1:19
+  mean_profile[] <- 0
+  c200           <- 1:length(wedges)
+  for(i in 1:(length(wedges)-1)){
+    index    <- which((tita < wedges[i+1]) & (tita > wedges[i]))
+    profile  <- I[index]
+    distance <- dist[index]
+
+    for(j in 1:19){
+      mean_profile[j] <- mean(profile[which((distance < dbins[j+1]) & (distance > dbins[j]))])
+    }
+
+    fit <- nls(mean_profile~I0/(1+(xbins/r0)), start = list(I0 = mean_profile[1], r0 = 1))
+    c200[i] <- coef(fit)[2]
+  }
+}
+#}}}
+
 
 
 
