@@ -49,4 +49,4 @@ messi(cat, folder = 'test')
 
 # Authors
 
-Martín de los Rios (ICTP-SAIFR/IFT-UNESP)
+Martín de los Rios (ICTP-SAIFR/IFT-UNESP) https://martindelosrios.netlify.com/ https://orcid.org/0000-0003-2190-2196
