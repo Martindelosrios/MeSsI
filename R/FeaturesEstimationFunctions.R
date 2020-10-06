@@ -666,7 +666,7 @@ get_galaxies_features_new <- function(dat, ClustersData, name.gal = 'galaxiesOut
     group_gals    <- subset(dat, dat$id == ClustersData$id[i]) # Id of the cluster that will be studied in this iteration
     group_data    <- ClustersData[i,] # Data of the cluster that will be studied in this iteration
     features  <- GalaxiesFeatures_new(group_gals, featuresFunctions, featuresNames) # Estimation of the galaxy features
-    Gfeatures <- GroupFeatures(group_gals, group_data[,c(9,11,5,13,14,15,16,17,18,6,7,12)], GfeaturesNames)
+    Gfeatures <- GroupFeatures(group_gals, group_data, GfeaturesNames)
     features  <- cbind(features, Gfeatures)
     if(i == 1){
       AllGalaxyfeatures <- features
