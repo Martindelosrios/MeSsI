@@ -46,7 +46,7 @@ str(cat)
 
 messi(cat, folder = 'test')
 ```
-
+You can find more examples at https://github.com/Martindelosrios/MeSsI/tree/master/Examples
 # Authors
 
 Martín de los Rios (ICTP-SAIFR/IFT-UNESP)
