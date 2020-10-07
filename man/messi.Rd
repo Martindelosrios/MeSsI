@@ -8,6 +8,8 @@ messi(
   cat = -99,
   clusters = TRUE,
   galaxies = TRUE,
+  clustersData = NULL,
+  GalaxiesData = NULL,
   classification = TRUE,
   clustersOutput = "clustersOutput.dat",
   galaxiesOutput = "galaxiesOutput.dat",

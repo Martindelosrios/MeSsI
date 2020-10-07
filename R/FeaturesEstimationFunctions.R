@@ -607,12 +607,12 @@ GalaxiesFeatures_new <- function(group, featuresFunctions, featuresNames){
   ngals <- length(group$id) # Number of member galaxies of this cluster
 
 # General properties of the galaxies
-  id    <- group$id
-  ra    <- group$ra
-  dec   <- group$dec
-  z     <- group$z
-  mag   <- group$mag
-  color <- group$color
+  #id    <- group$id
+  #ra    <- group$ra
+  #dec   <- group$dec
+  #z     <- group$z
+  #mag   <- group$mag
+  #color <- group$color
   
 # Estimating features
   nfeat <- length(featuresFunctions)
@@ -620,12 +620,14 @@ GalaxiesFeatures_new <- function(group, featuresFunctions, featuresNames){
   for(i in 1:nfeat){
     mat[,i] <- featuresFunctions[[i]](group) 
   }
-  featMAT <- data.frame(id, ra, dec, z, mag, color)
-  featMAT <- cbind(featMAT, data.frame(mat))
+  featMAT <- group #data.frame(id, ra, dec, z, mag, color)
+  mat <- data.frame(mat)
+  colnames(mat) <- featuresNames
+  featMAT <- cbind(featMAT, mat)
  
-  if(is.null(featuresNames) == FALSE){
-    colnames(featMAT)[-(1:6)] <- featuresNames
-  }
+  #if(is.null(featuresNames) == FALSE){
+  #  colnames(featMAT)[-(1:6)] <- featuresNames
+  #}
 
   return(featMAT)
 }
@@ -774,6 +776,8 @@ get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, fold
 messi <- function(cat = -99, 
                   clusters = TRUE,
                   galaxies = TRUE,
+                  clustersData = NULL,
+                  GalaxiesData = NULL,
                   classification = TRUE, 
                   clustersOutput = 'clustersOutput.dat',
                   galaxiesOutput = 'galaxiesOutput.dat',
@@ -809,6 +813,10 @@ messi <- function(cat = -99,
     print('Starting the estimation of the galaxy clusters features')
     if(ntotal == 0){ntotal <- length(cat$ra)}
     ClustersData <- get_cluster_features(cat, ntotal, name.groups)
+  } else {
+    if(is.null(ClustersData) == TRUE){
+      print('You must specified a data frame with the clusters features or select cluster = TRUE in order to compute the features')
+    }
   }
 
 # ---------------------------------------------------------------------------------------
@@ -818,7 +826,10 @@ messi <- function(cat = -99,
   if(galaxies == TRUE){
     print('Starting the estimation of the galaxy features')
     GalaxiesData <- get_galaxies_features(cat, ClustersData, name.gal)
+  } else {
+    if(is.null(GalaxiesData) == TRUE){print('You must specified a data frame with galaxy features or select galaxies = TRUE in order to compute the features')}
   }
+
 
 # ---------------------------------------------------------------------------------------
 # --------------------------- Galaxy Cluster Classification ------------------------------
