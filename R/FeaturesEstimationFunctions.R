@@ -465,7 +465,7 @@ get_cluster_features_new <- function(dat, ntotal = 0, name.groups = 'clustersOut
   ngal.lim <- 30
 
   if(ntotal == 0){ntotal <- length(dat$ra)}
-  pb <- progress_bar$new(total = floor(ntotal))
+  pb <- progress_bar$new(total = floor(ntotal/30))
   for(i in 1:ntotal){
     pb$tick()
 
@@ -665,8 +665,9 @@ get_galaxies_features_new <- function(dat, ClustersData, name.gal = 'galaxiesOut
   for(i in 1:nclusters){
     pb$tick()
 
-    group_gals    <- subset(dat, dat$id == ClustersData$id[i]) # Id of the cluster that will be studied in this iteration
-    group_data    <- ClustersData[i,] # Data of the cluster that will be studied in this iteration
+    group_gals <- subset(dat, dat$id == ClustersData$id[i]) # Id of the cluster that will be studied in this iteration
+    group_data <- ClustersData[i,] # Data of the cluster that will be studied in this iteration
+    group_data <- subset(group_data, select = -c(id, ra, dec, z, id_mer))
     features  <- GalaxiesFeatures_new(group_gals, featuresFunctions, featuresNames) # Estimation of the galaxy features
     Gfeatures <- GroupFeatures(group_gals, group_data, GfeaturesNames)
     features  <- cbind(features, Gfeatures)
