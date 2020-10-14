@@ -458,7 +458,8 @@ get_cluster_features_new <- function(dat, ntotal = 0, name.groups = 'clustersOut
                                        lillie.testGroup, pearson.testGroup),
               featuresNames = c('ngal', 'color', 'mag_max', 'gap_mag', 'Delta', 'Delta2',
                                  'pval_ds', 'ind', 'pval_sw', 'pval_sf', 'pval_ad',
-                                 'pval_cvm', 'pval_lillie','pval_pearson')){
+                                 'pval_cvm', 'pval_lillie','pval_pearson'),
+              write = TRUE){
 
 
   counter  <- 0
@@ -483,7 +484,7 @@ get_cluster_features_new <- function(dat, ntotal = 0, name.groups = 'clustersOut
       }
     }
   }
-  write.table(Allfeatures, file = name.groups, row.names = FALSE)
+  if(write == TRUE){write.table(Allfeatures, file = name.groups, row.names = FALSE)}
   return(Allfeatures)
 }
 #}}}
@@ -655,7 +656,8 @@ get_galaxies_features_new <- function(dat, ClustersData, name.gal = 'galaxiesOut
                                                          'sw_cum','sf_cum', 'ad_cum', 
                                                          'cvm_cum', 'lillie_cum', 
                                                          'pearson_cum', 'col_cum', 
-                                                         'mag_cum', 'ind_cum')
+                                                         'mag_cum', 'ind_cum'),
+                                      write = TRUE
 ){
 
 
@@ -667,7 +669,8 @@ get_galaxies_features_new <- function(dat, ClustersData, name.gal = 'galaxiesOut
 
     group_gals <- subset(dat, dat$id == ClustersData$id[i]) # Id of the cluster that will be studied in this iteration
     group_data <- ClustersData[i,] # Data of the cluster that will be studied in this iteration
-    group_data <- subset(group_data, select = -c(id, ra, dec, z, id_mer))
+    group_data <- subset(group_data, select = -c(id, ra, dec, z))
+    if(length(which(colnames(group_data) == 'id_mer')) != 0){group_data <- subset(group_data, select = -c(id_mer))}
     features  <- GalaxiesFeatures_new(group_gals, featuresFunctions, featuresNames) # Estimation of the galaxy features
     Gfeatures <- GroupFeatures(group_gals, group_data, GfeaturesNames)
     features  <- cbind(features, Gfeatures)
@@ -677,7 +680,7 @@ get_galaxies_features_new <- function(dat, ClustersData, name.gal = 'galaxiesOut
       AllGalaxyfeatures <- rbind(AllGalaxyfeatures, features)
     }
   }
-  write.table(AllGalaxyfeatures, file = name.gal, row.names = FALSE, quote = FALSE)
+  if(write == TRUE){write.table(AllGalaxyfeatures, file = name.gal, row.names = FALSE, quote = FALSE)}
   return(AllGalaxyfeatures)
 }
 
@@ -777,7 +780,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, fold
 messi <- function(cat = -99, 
                   clusters = TRUE,
                   galaxies = TRUE,
-                  clustersData = NULL,
+                  ClustersData = NULL,
                   GalaxiesData = NULL,
                   classification = TRUE, 
                   clustersOutput = 'clustersOutput.dat',
@@ -841,6 +844,8 @@ messi <- function(cat = -99,
     if(ClustersML == 'defaultClustersModel'){ 
       print('Using Defatult Model')    
       data(ClustersModel)
+    } else{
+      ClustersModel <- ClustersML
     }
     Classification       <- get_clusters_classification(ClustersData, ClustersModel)
     ClustersData$relProb <- Classification[,1]
@@ -851,6 +856,8 @@ messi <- function(cat = -99,
     if(GalaxiesML == 'defaultGalaxiesModel'){
       print('Using default Model')
       data(GalaxiesModel)
+    } else {
+      GalaxiesModel <-  GalaxiesML
     }
 
     Substructures <- get_substructures(ClustersData = ClustersData, 

@@ -14,7 +14,8 @@ get_galaxies_features_new(
   featuresNames = c("delta", "delta2", "sw_gal", "sf_gal", "ad_gal", "cvm_gal",
     "lillie_gal", "pearson_gal"),
   GfeaturesNames = c("Delta", "pval_ds", "ngal", "sw_cum", "sf_cum", "ad_cum",
-    "cvm_cum", "lillie_cum", "pearson_cum", "col_cum", "mag_cum", "ind_cum")
+    "cvm_cum", "lillie_cum", "pearson_cum", "col_cum", "mag_cum", "ind_cum"),
+  write = TRUE
 )
 }
 \arguments{
