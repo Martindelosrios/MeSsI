@@ -841,7 +841,7 @@ messi <- function(cat = -99,
 
   if(classification == TRUE){
     print('Starting the classification of the galaxy clusters')
-    if(ClustersML == 'defaultClustersModel'){ 
+    if(ClustersML[1] == 'defaultClustersModel'){ 
       print('Using Defatult Model')    
       data(ClustersModel)
     } else{
@@ -853,7 +853,7 @@ messi <- function(cat = -99,
     write.table(ClustersData, file = name.groups, row.names = FALSE)
 
     print('Starting the estimation of the substructures')
-    if(GalaxiesML == 'defaultGalaxiesModel'){
+    if(GalaxiesML[1] == 'defaultGalaxiesModel'){
       print('Using default Model')
       data(GalaxiesModel)
     } else {
