@@ -381,6 +381,7 @@ get_cluster_features <- function(dat, ntotal = 0, name.groups = 'clustersOutput.
   counter  <- 0
   ngal.lim <- 30
 
+  ntotal <- length(dat$ra)
   pb <- progress_bar$new(total = floor(ntotal))
   for(i in 1:ntotal){
     pb$tick()
@@ -904,6 +905,7 @@ SubstructureIdentification <- function(group, folder){
   if(ngal > 10){
     GroupSubs <- WeightedMclust(group) # Mclust pesado por peso
     nSubs     <- max(GroupSubs$SubId)
+    print(paste('Cluster ', toString(group$id[1]), ' has ', toString(nSubs), ' substructures.'))
 
     if(nSubs > 1){
       name <- paste(toString(group.id),'_galaxies.dat',sep='')
@@ -918,6 +920,8 @@ SubstructureIdentification <- function(group, folder){
       SubsNgal   <- sort(SubsNgal, decreasing = TRUE, index.return = TRUE)
       FirstSubs  <- SubsNgal$x[1]
       SecondSubs <- SubsNgal$x[2]
+      print('Main substructure has ', toString(FirstSubs), ' galaxies.')
+      print('Second substructure has ', toString(SecondSubs), ' galaxies.')
       tot        <- (FirstSubs+SecondSubs)/ngal
 
       if(SecondSubs > 4){
