@@ -927,7 +927,7 @@ SubstructureIdentification <- function(group, folder){
       if(SecondSubs > 4){
         group1   <- subset(GroupSubs, GroupSubs$SubId == SubsNgal$ix[1])
         gap_dvel <- VelocityDispersionGAP(group1$z*300000.)
-        ProjDist <- ProjectedDistance(data.frame(group1$ra, group1$dec, group1$z*300000.))
+        ProjDist <- ProjectedDistance(data.frame(ra = group1$ra*pi/180, dec = group1$dec*pi/180, z = group1$z))
         rvir1    <- (pi*(length(group1$ra)-1)*length(group1$ra))/(2*ProjDist)
         dvel1    <- (sqrt(pi)*gap_dvel)/(length(group1$ra)*(length(group1$ra)-1))
         mas1     <- (5*(dvel1**2)*rvir1)/(4.314465e-09)
@@ -937,7 +937,7 @@ SubstructureIdentification <- function(group, folder){
 
         group2   <- subset(GroupSubs, GroupSubs$SubId == SubsNgal$ix[2])
         gap_dvel <- VelocityDispersionGAP(group2$z*300000.)
-        ProjDist <- ProjectedDistance(data.frame(group2$ra, group2$dec, group2$z*300000.))
+        ProjDist <- ProjectedDistance(data.frame(ra = group2$ra*pi/180, dec = group2$dec*pi/180, z = group2$z))
         rvir2    <- (pi*(length(group2$ra)-1)*length(group2$ra))/(2*ProjDist)
         dvel2    <- (sqrt(pi)*gap_dvel)/(length(group2$ra)*(length(group2$ra)-1))
         mas2     <- (5*(dvel2**2)*rvir2)/(4.314465e-09)
