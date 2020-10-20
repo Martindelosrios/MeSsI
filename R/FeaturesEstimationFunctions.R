@@ -382,7 +382,7 @@ get_cluster_features <- function(dat, ntotal = 0, name.groups = 'clustersOutput.
   ngal.lim <- 30
 
   ntotal <- length(dat$ra)
-  pb <- progress_bar$new(total = floor(ntotal))
+  pb <- progress_bar$new(total = floor(ntotal/30))
   for(i in 1:ntotal){
     pb$tick()
 
