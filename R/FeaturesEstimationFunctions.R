@@ -920,8 +920,8 @@ SubstructureIdentification <- function(group, folder){
       SubsNgal   <- sort(SubsNgal, decreasing = TRUE, index.return = TRUE)
       FirstSubs  <- SubsNgal$x[1]
       SecondSubs <- SubsNgal$x[2]
-      print('Main substructure has ', toString(FirstSubs), ' galaxies.')
-      print('Second substructure has ', toString(SecondSubs), ' galaxies.')
+      print(paste('Main substructure has ', toString(FirstSubs), ' galaxies.'))
+      print(paste('Second substructure has ', toString(SecondSubs), ' galaxies.'))
       tot        <- (FirstSubs+SecondSubs)/ngal
 
       if(SecondSubs > 4){
