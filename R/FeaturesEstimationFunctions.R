@@ -467,10 +467,8 @@ get_cluster_features_new <- function(dat, ntotal = 0, name.groups = 'clustersOut
   ngal.lim <- 30
 
   if(ntotal == 0){ntotal <- length(dat$ra)}
-  pb <- progress_bar$new(total = floor(ntotal/30))
   for(i in 1:ntotal){
-    pb$tick()
-
+    print(paste('Analyzing  cluster ', toString(i)))
     if(length(dat$ra) == 0){break}
     groupid <- dat$id[1] # Id if the group that will be studied
     group   <- subset(dat, dat$id == groupid) # Select the galaxies of the group
