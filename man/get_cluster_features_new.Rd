@@ -14,7 +14,8 @@ get_cluster_features_new(
     lillie.testGroup, pearson.testGroup),
   featuresNames = c("ngal", "color", "mag_max", "gap_mag", "Delta", "Delta2", "pval_ds",
     "ind", "pval_sw", "pval_sf", "pval_ad", "pval_cvm", "pval_lillie", "pval_pearson"),
-  write = TRUE
+  write = TRUE,
+  ngal.lim = 30
 )
 }
 \arguments{
