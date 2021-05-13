@@ -377,9 +377,9 @@ ClusterFeatures <- function(group){
 #' @examples
 #' get_cluster_features(dat)
 
-get_cluster_features <- function(dat, ntotal = 0, name.groups = 'clustersOutput.dat'){
+get_cluster_features <- function(dat, ntotal = 0, name.groups = 'clustersOutput.dat', ngal.lim = 30){
   counter  <- 0
-  ngal.lim <- 30
+  ngal.lim <- ngal.lim
 
   ntotal <- length(dat$ra)
   pb <- progress_bar$new(total = floor(ntotal/30))
@@ -460,11 +460,12 @@ get_cluster_features_new <- function(dat, ntotal = 0, name.groups = 'clustersOut
               featuresNames = c('ngal', 'color', 'mag_max', 'gap_mag', 'Delta', 'Delta2',
                                  'pval_ds', 'ind', 'pval_sw', 'pval_sf', 'pval_ad',
                                  'pval_cvm', 'pval_lillie','pval_pearson'),
-              write = TRUE){
+              write = TRUE,
+              ngal.lim = 30){
 
 
   counter  <- 0
-  ngal.lim <- 30
+  ngal.lim <- ngal.lim
 
   if(ntotal == 0){ntotal <- length(dat$ra)}
   for(i in 1:ntotal){
