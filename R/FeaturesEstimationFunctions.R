@@ -752,7 +752,7 @@ get_substructures <- function(ClustersData, GalaxiesData, model, probLimit, fold
       }
     }
   }
-  if(exists('AllSubstructures') == FALSE){AllSubstructures$group.id <- -99}
+  if(exists('AllSubstructures') == FALSE){AllSubstructures <- data.frame('group.id' = -99)}
   return(AllSubstructures)
 }
 #}}}
